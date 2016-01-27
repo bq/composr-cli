@@ -40,15 +40,13 @@ CompoSR Command Line Interface
 ## Install
 
 ```sh
-npm i -D composr-cli
+npm -g install composr-cli
 ```
 
 ## Usage
 
-```js
-import composrCli from "composr-cli"
-
-composrCli() // true
+```sh
+$ composr-cli -h
 ```
 
 ## License

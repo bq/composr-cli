@@ -4,7 +4,7 @@
   "description": "CompoSR Command Line Interface",
   "main": "bin/",
   "bin": {
-    "composr-cli": "bin/"
+    "composr-cli": "bin/cli.js"
   },
   "preferGlobal": "true",
   "files": [
@@ -40,7 +40,7 @@
     "composr",
     "corbel"
   ],
-  "author": "jscMR <jorge.serrano@bq.com>",
+  "author": "jscmr",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jscMR/composr-cli/issues"

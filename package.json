@@ -1,8 +1,12 @@
 {
   "name": "composr-cli",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "CompoSR Command Line Interface",
-  "main": "dist/index.js",
+  "main": "bin/",
+  "bin": {
+    "composr-cli": "bin/"
+  },
+  "preferGlobal": "true",
   "files": [
     "bin/",
     "dist/"
@@ -56,5 +60,9 @@
     "tap-spec": "*",
     "tape": "*",
     "watch": "*"
+  },
+  "dependencies": {
+    "cli": "^0.11.1",
+    "jsonfile": "^2.2.3"
   }
 }

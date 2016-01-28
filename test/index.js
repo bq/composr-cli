@@ -1,5 +1,5 @@
 import test from "tape"
-import composrCli from "../src"
+import composrCli from "../src/cli"
 
 test("composrCli", (t) => {
   t.plan(1)

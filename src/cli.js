@@ -10,15 +10,6 @@ import async from 'async'
 import corbel from 'corbel-js'
 
 
-
-/*let i = 0, interval = setInterval(function () {
-      cli.progress(++i / 100);
-      if (i === 100) {
-          clearInterval(interval);
-          cli.ok('Finished!');
-      }
-  }, 50);*/
-
 cli.parse({
     init: ['i', 'Create a composr.json in your project.'],
     publish: ['p', 'Publish all your phrases to CompoSR'],
@@ -26,19 +17,27 @@ cli.parse({
 })
 
 cli.main((args, options) => {
-    cli.debug(JSON.stringify(options))
-    cli.debug(args)
+    // cli.debug(JSON.stringify(options))
+    // cli.debug(args)
     if (options.init) init()
 })
 
 
-
+/**
+ * [init description]
+ * @return {[type]} [description]
+ */
 function init() {
 
     //async.series()
     locateRc()
 }
 
+/**
+ * [locateComposrJson description]
+ * @param  {Function} next [description]
+ * @return {[type]}        [description]
+ */
 function locateComposrJson(next) {
 
     const file = process.cwd() + '/composr.json'
@@ -52,27 +51,18 @@ function locateComposrJson(next) {
     })
 }
 
-
+/**
+ * [locateRc description]
+ * @return {[type]} [description]
+ */
 function locateRc() {
 
-    /*
-    "corbel.composr.credentials": {
-        "clientId": "9bdbd5c5",
-        "clientSecret": "34f848098c9f79e3b675154add9cc6aa7d06625f85a531568ef930be98c83aab",
-        "scopes": "composr:comp:admin"
-    },
-    "corbel.driver.options": {
-        "urlBase": "https://proxy-next.bqws.io/{{module}}/v1.0/"
-    },
 
-    'clientSecret','scopes','urlBase'
-     */
-
-    fs.readFile(process.cwd() + '/.composrc', 'utf8', (err, data) => {
+    fs.readFile(process.cwd() + '/.composrc', 'utf8', (err, credentialsYml) => {
 
         if (err) {
 
-            prompt.message = "CompoSR-cli!".cyan
+            prompt.message = "cpo!".cyan
             prompt.delimiter = "><".green
             // start prompt
             prompt.start()
@@ -110,45 +100,46 @@ function locateRc() {
                     urlBase: result.urlBase || null
                 }
 
-                let yamlString = YAML.stringify(credentials, 4);
-
-                fs.writeFile(process.cwd() + '/.composrc',yamlString, (err) => {
-                  if(err) throw err
-
-                  fs.appendFile(process.cwd()+'/.gitignore','.composrc', (err) => {
-                    if(err) throw err
-                  })
-
-                  cli.ok('.composrc created successfully!')
-
-                })
-
                 login(credentials)
             })
 
-        }else{
-          return cli.ok('.composrc found!')
+        } else {
+            login(YAML.parse(credentialsYml))
         }
-
-
-
-
     })
-
 }
 
+/**
+ * [login description]
+ * @param  {[type]} credentials [description]
+ * @return {[type]}             [description]
+ */
+function login(credentials) {
 
-function login(credentials){
 
-  const corbelDriver = corbel.getDriver(credentials)
+      const corbelDriver = corbel.getDriver(credentials)
 
-  corbelDriver.iam.token().create().then(userTokens => {
+      corbelDriver.iam.token().create().then(response => {
 
-    cli.ok('Login successfully:')
-    cli.info(JSON.stringify(userTokens))
+          credentials.accessToken = response.data.accessToken
 
-  }).catch((err) => {
-    cli.error(err)
-  })
+          let yamlString = YAML.stringify(credentials, 4);
+
+          fs.writeFile(process.cwd() + '/.composrc', yamlString, (err) => {
+              if (err) throw err
+
+              fs.appendFile(process.cwd() + '/.gitignore', '.composrc \n', (err) => {
+                  if (err) throw err
+              })
+
+              cli.ok('.composrc created successfully!')
+
+          })
+
+          cli.ok('Login successfully:')
+
+      }).catch((err) => {
+          cli.error(err)
+      })
 
 }

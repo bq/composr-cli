@@ -36,14 +36,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 process.bin = process.title = 'composr-cli';
 
-/*let i = 0, interval = setInterval(function () {
-      cli.progress(++i / 100);
-      if (i === 100) {
-          clearInterval(interval);
-          cli.ok('Finished!');
-      }
-  }, 50);*/
-
 _cli2.default.parse({
     init: ['i', 'Create a composr.json in your project.'],
     publish: ['p', 'Publish all your phrases to CompoSR'],
@@ -51,17 +43,26 @@ _cli2.default.parse({
 });
 
 _cli2.default.main(function (args, options) {
-    _cli2.default.debug(JSON.stringify(options));
-    _cli2.default.debug(args);
+    // cli.debug(JSON.stringify(options))
+    // cli.debug(args)
     if (options.init) init();
 });
 
+/**
+ * [init description]
+ * @return {[type]} [description]
+ */
 function init() {
 
     //async.series()
     locateRc();
 }
 
+/**
+ * [locateComposrJson description]
+ * @param  {Function} next [description]
+ * @return {[type]}        [description]
+ */
 function locateComposrJson(next) {
 
     var file = process.cwd() + '/composr.json';
@@ -75,25 +76,24 @@ function locateComposrJson(next) {
     });
 }
 
+/**
+ * [locateRc description]
+ * @return {[type]} [description]
+ */
 function locateRc() {
 
     /*
-    "corbel.composr.credentials": {
-        "clientId": "9bdbd5c5",
+         "clientId": "9bdbd5c5",
         "clientSecret": "34f848098c9f79e3b675154add9cc6aa7d06625f85a531568ef930be98c83aab",
         "scopes": "composr:comp:admin"
-    },
-    "corbel.driver.options": {
         "urlBase": "https://proxy-next.bqws.io/{{module}}/v1.0/"
-    },
-     'clientSecret','scopes','urlBase'
-     */
+      */
 
-    _fs2.default.readFile(process.cwd() + '/.composrc', 'utf8', function (err, data) {
+    _fs2.default.readFile(process.cwd() + '/.composrc', 'utf8', function (err, credentialsYml) {
 
         if (err) {
 
-            _prompt2.default.message = "CompoSR-cli!".cyan;
+            _prompt2.default.message = "cpo!".cyan;
             _prompt2.default.delimiter = "><".green;
             // start prompt
             _prompt2.default.start();
@@ -131,34 +131,40 @@ function locateRc() {
                     urlBase: result.urlBase || null
                 };
 
-                var yamlString = _yamljs2.default.stringify(credentials, 4);
-
-                _fs2.default.writeFile(process.cwd() + '/.composrc', yamlString, function (err) {
-                    if (err) throw err;
-
-                    _fs2.default.appendFile(process.cwd() + '/.gitignore', '.composrc', function (err) {
-                        if (err) throw err;
-                    });
-
-                    _cli2.default.ok('.composrc created successfully!');
-                });
-
                 login(credentials);
             });
         } else {
-            return _cli2.default.ok('.composrc found!');
+            login(_yamljs2.default.parse(credentialsYml));
         }
     });
 }
 
+/**
+ * [login description]
+ * @param  {[type]} credentials [description]
+ * @return {[type]}             [description]
+ */
 function login(credentials) {
 
     var corbelDriver = _corbelJs2.default.getDriver(credentials);
 
-    corbelDriver.iam.token().create().then(function (userTokens) {
+    corbelDriver.iam.token().create().then(function (response) {
+
+        credentials.accessToken = response.data.accessToken;
+
+        var yamlString = _yamljs2.default.stringify(credentials, 4);
+
+        _fs2.default.writeFile(process.cwd() + '/.composrc', yamlString, function (err) {
+            if (err) throw err;
+
+            _fs2.default.appendFile(process.cwd() + '/.gitignore', '.composrc \n', function (err) {
+                if (err) throw err;
+            });
+
+            _cli2.default.ok('.composrc created successfully!');
+        });
 
         _cli2.default.ok('Login successfully:');
-        _cli2.default.info(JSON.stringify(userTokens));
     }).catch(function (err) {
         _cli2.default.error(err);
     });

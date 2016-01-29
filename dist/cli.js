@@ -82,13 +82,6 @@ function locateComposrJson(next) {
  */
 function locateRc() {
 
-    /*
-         "clientId": "9bdbd5c5",
-        "clientSecret": "34f848098c9f79e3b675154add9cc6aa7d06625f85a531568ef930be98c83aab",
-        "scopes": "composr:comp:admin"
-        "urlBase": "https://proxy-next.bqws.io/{{module}}/v1.0/"
-      */
-
     _fs2.default.readFile(process.cwd() + '/.composrc', 'utf8', function (err, credentialsYml) {
 
         if (err) {

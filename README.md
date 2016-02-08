@@ -6,13 +6,13 @@
          alt="NPM Version">
   </a>
 
-  <a href="https://coveralls.io/r/jscMR/composr-cli">
-    <img src="https://img.shields.io/coveralls/jscMR/composr-cli.svg?style=flat-square"
+  <a href="https://coveralls.io/r/corbel-platform/composr-cli">
+    <img src="https://img.shields.io/coveralls/corbel-platform/composr-cli.svg?style=flat-square"
          alt="Coverage Status">
   </a>
 
-  <a href="https://travis-ci.org/jscMR/composr-cli">
-    <img src="https://img.shields.io/travis/jscMR/composr-cli.svg?style=flat-square"
+  <a href="https://travis-ci.org/corbel-platform/composr-cli">
+    <img src="https://img.shields.io/travis/corbel-platform/composr-cli.svg?style=flat-square"
          alt="Build Status">
   </a>
 
@@ -21,12 +21,12 @@
          alt="Downloads">
   </a>
 
-  <a href="https://david-dm.org/jscMR/composr-cli.svg">
-    <img src="https://david-dm.org/jscMR/composr-cli.svg?style=flat-square"
+  <a href="https://david-dm.org/corbel-platform/composr-cli.svg">
+    <img src="https://david-dm.org/corbel-platform/composr-cli.svg?style=flat-square"
          alt="Dependency Status">
   </a>
 
-  <a href="https://github.com/jscMR/composr-cli/blob/master/LICENSE">
+  <a href="https://github.com/corbel-platform/composr-cli/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/composr-cli.svg?style=flat-square"
          alt="License">
   </a>
@@ -51,18 +51,18 @@ $ composr-cli -h
 
 ## License
 
-MIT © [jscMR](http://github.com/jscMR)
+MIT © [corbel-platform](http://github.com/corbel-platform)
 
 [npm-url]: https://npmjs.org/package/composr-cli
 [npm-image]: https://img.shields.io/npm/v/composr-cli.svg?style=flat-square
 
-[travis-url]: https://travis-ci.org/jscMR/composr-cli
-[travis-image]: https://img.shields.io/travis/jscMR/composr-cli.svg?style=flat-square
+[travis-url]: https://travis-ci.org/corbel-platform/composr-cli
+[travis-image]: https://img.shields.io/travis/corbel-platform/composr-cli.svg?style=flat-square
 
-[coveralls-url]: https://coveralls.io/r/jscMR/composr-cli
-[coveralls-image]: https://img.shields.io/coveralls/jscMR/composr-cli.svg?style=flat-square
+[coveralls-url]: https://coveralls.io/r/corbel-platform/composr-cli
+[coveralls-image]: https://img.shields.io/coveralls/corbel-platform/composr-cli.svg?style=flat-square
 
-[depstat-url]: https://david-dm.org/jscMR/composr-cli
-[depstat-image]: https://david-dm.org/jscMR/composr-cli.svg?style=flat-square
+[depstat-url]: https://david-dm.org/corbel-platform/composr-cli
+[depstat-image]: https://david-dm.org/corbel-platform/composr-cli.svg?style=flat-square
 
 [download-badge]: http://img.shields.io/npm/dm/composr-cli.svg?style=flat-square

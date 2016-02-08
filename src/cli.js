@@ -10,6 +10,10 @@ import async from 'async'
 import corbel from 'corbel-js'
 import path from 'path'
 
+//Lib modules
+import login from './login'
+import writeCredentials from './writeCredentials'
+
 // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
 prompt.message = "CompoSR".cyan
@@ -180,11 +184,11 @@ function locateRc(next) {
                     urlBase: result.urlBase || null
                 }
 
-                login(credentials, next)
+                loginClient(credentials, next)
             })
 
         } else {
-            login(YAML.parse(credentialsYml), next)
+            loginClient(YAML.parse(credentialsYml), next)
         }
     })
 }
@@ -194,29 +198,17 @@ function locateRc(next) {
  * @param  {[type]} credentials [description]
  * @return {[type]}             [description]
  */
-function login(credentials, next) {
+function loginClient(credentials, next) {
 
-
-    const corbelDriver = corbel.getDriver(credentials)
-
-    corbelDriver.iam.token().create().then(response => {
-
-        credentials.accessToken = response.data.accessToken
-
-        let yamlString = YAML.stringify(credentials, 4);
-
-        fs.writeFile(USER_HOME_ROOT + '/.composrc', yamlString, (err) => {
-            if (err) throw err
-        })
-
-        cli.ok('Login successfully:')
-        return next(null, true)
-
-    }).catch((err) => {
+    login(credenials, function(err, creds){
+      if(err){
         cli.error(err)
         return next(err, null)
-    })
-
+      }else{
+        cli.ok('Login successful');
+        return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next);
+      }  
+    });
 }
 
 /**

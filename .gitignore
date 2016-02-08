@@ -5,7 +5,6 @@ node_modules
 tmp
 coverage
 npm-debug.log
-.composrc
 example
 .composrc 
-.composrc 
+.tmp

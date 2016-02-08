@@ -8,8 +8,15 @@ import YAML from 'yamljs'
 import prompt from 'prompt'
 import async from 'async'
 import corbel from 'corbel-js'
+import path from 'path'
+
+// CONST
+const USER_HOME_ROOT = getUserHome() + '/.composr'
+prompt.message = "CompoSR".cyan
+prompt.delimiter = "><".green
 
 
+// CLI
 cli.parse({
     init: ['i', 'Create a composr.json in your project.'],
     publish: ['p', 'Publish all your phrases to CompoSR'],
@@ -17,8 +24,8 @@ cli.parse({
 })
 
 cli.main((args, options) => {
-    // cli.debug(JSON.stringify(options))
-    // cli.debug(args)
+    /*cli.debug(JSON.stringify(options))
+    cli.debug(args)*/
     if (options.init) init()
 })
 
@@ -29,8 +36,13 @@ cli.main((args, options) => {
  */
 function init() {
 
-    //async.series()
-    locateRc()
+    initRC((err, result) => {
+        locateComposrJson((err, result) => {
+            console.log('CompoSR ready to rock!')
+        })
+    })
+
+
 }
 
 /**
@@ -40,30 +52,98 @@ function init() {
  */
 function locateComposrJson(next) {
 
-    const file = process.cwd() + '/composr.json'
-
-    jsonfile.readFile(file, function(err, obj) {
+    jsonfile.readFile(process.cwd() + '/composr.json', function(err, obj) {
         if (!err) {
-            console.dir(obj)
+            cli.ok(':: Your Initialization is done ::')
+            cli.info('U can use CPO ^^')
+            next(null, true)
         } else {
-            cli.error('Json not found')
+
+
+
+            let schema = {
+                properties: {
+                    name: {
+                        message: 'Your composr vdomain name',
+                        default: path.basename(process.cwd()),
+                        type: 'string'
+                    },
+                    author: {
+                        message: 'Your name',
+                        default: path.basename(getUserHome()),
+                        type: 'string'
+                    },
+                    version: {
+                        message: 'Version',
+                        default: '1.0.0',
+                        type: 'string'
+                    },
+                    source_location: {
+                        message: 'Where is my phrases code?',
+                        default: './src',
+                        type: 'string'
+                    },
+                    git: {
+                        message: 'Git repository url',
+                        default: '',
+                        type: 'string'
+                    },
+                    license: {
+                        message: 'License',
+                        default: 'MIT',
+                        type: 'string'
+                    },
+                    mock_middleware: {
+                        message: 'Do you want activate mock middleware?',
+                        default: false,
+                        type: 'boolean'
+                    },
+                    validate_middleware: {
+                        message: 'Do you want activate validate middleware?',
+                        default: false,
+                        type: 'boolean'
+                    }
+                }
+            }
+
+
+            prompt.start()
+            prompt.get(schema, (err, result) => {
+
+                result.vd_dependencies = {}
+
+                // creating composr.json
+                fs.writeFile(process.cwd() + '/composr.json', JSON.stringify(result,null,2), (err) => {
+                    if (err) {
+                        return next(err, false)
+                        throw err
+                    }
+
+                    return next(null, true)
+
+                })
+            })
         }
     })
+}
+
+function initRC(next) {
+
+    if (!fs.existsSync(USER_HOME_ROOT)) fs.mkdirSync(USER_HOME_ROOT)
+
+    locateRc(next)
 }
 
 /**
  * [locateRc description]
  * @return {[type]} [description]
  */
-function locateRc() {
+function locateRc(next) {
 
-
-    fs.readFile(process.cwd() + '/.composrc', 'utf8', (err, credentialsYml) => {
+    fs.readFile(USER_HOME_ROOT + '/.composrc', 'utf8', (err, credentialsYml) => {
 
         if (err) {
 
-            prompt.message = "cpo!".cyan
-            prompt.delimiter = "><".green
             // start prompt
             prompt.start()
             //
@@ -100,11 +180,11 @@ function locateRc() {
                     urlBase: result.urlBase || null
                 }
 
-                login(credentials)
+                login(credentials, next)
             })
 
         } else {
-            login(YAML.parse(credentialsYml))
+            login(YAML.parse(credentialsYml), next)
         }
     })
 }
@@ -114,32 +194,35 @@ function locateRc() {
  * @param  {[type]} credentials [description]
  * @return {[type]}             [description]
  */
-function login(credentials) {
+function login(credentials, next) {
 
 
-      const corbelDriver = corbel.getDriver(credentials)
+    const corbelDriver = corbel.getDriver(credentials)
 
-      corbelDriver.iam.token().create().then(response => {
+    corbelDriver.iam.token().create().then(response => {
 
-          credentials.accessToken = response.data.accessToken
+        credentials.accessToken = response.data.accessToken
 
-          let yamlString = YAML.stringify(credentials, 4);
+        let yamlString = YAML.stringify(credentials, 4);
 
-          fs.writeFile(process.cwd() + '/.composrc', yamlString, (err) => {
-              if (err) throw err
+        fs.writeFile(USER_HOME_ROOT + '/.composrc', yamlString, (err) => {
+            if (err) throw err
+        })
 
-              fs.appendFile(process.cwd() + '/.gitignore', '.composrc \n', (err) => {
-                  if (err) throw err
-              })
+        cli.ok('Login successfully:')
+        return next(null, true)
 
-              cli.ok('.composrc created successfully!')
+    }).catch((err) => {
+        cli.error(err)
+        return next(err, null)
+    })
 
-          })
+}
 
-          cli.ok('Login successfully:')
-
-      }).catch((err) => {
-          cli.error(err)
-      })
-
+/**
+ * [getUserHome description]
+ * @return {[type]} [description]
+ */
+function getUserHome() {
+    return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME']
 }

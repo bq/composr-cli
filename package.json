@@ -33,19 +33,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jscMR/composr-cli.git"
+    "url": "git+https://github.com/corbel-platform/composr-cli.git"
   },
   "keywords": [
     "node",
     "composr",
     "corbel"
   ],
-  "author": "jscmr",
+  "authors": [
+    "jscmr",
+    "rafinskipg"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jscMR/composr-cli/issues"
+    "url": "https://github.com/corbel-platform/composr-cli/issues"
   },
-  "homepage": "https://github.com/jscMR/composr-cli#readme",
+  "homepage": "https://github.com/corbel-platform/composr-cli#readme",
   "devDependencies": {
     "babel-cli": "^6.4.5",
     "babel-core": "^6.4.5",

@@ -16,21 +16,31 @@ import writeCredentials from './writeCredentials'
 
 // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
+const COMPOSR_RC_FILE_PATH = USER_HOME_ROOT + '/.composrrc'
+
 prompt.message = "CompoSR".cyan
-prompt.delimiter = "><".green
+prompt.delimiter = " - ".green
 
 
 // CLI
 cli.parse({
-    init: ['i', 'Create a composr.json in your project.'],
-    publish: ['p', 'Publish all your phrases to CompoSR'],
-    update: ['u', 'Update at CompoSR.io your composr.json']
+  init: ['i', 'Create a composr.json in your project.'],
+  publish: ['p', 'Publish all your phrases to CompoSR'],
+  update: ['u', 'Update at CompoSR.io your composr.json']
 })
 
 cli.main((args, options) => {
     /*cli.debug(JSON.stringify(options))
     cli.debug(args)*/
-    if (options.init) init()
+    cli.ok('Welcome to CompoSR');
+    if (options.init) {
+      cli.debug('>>> Bootstraping a new CompoSR application')
+      init()
+    }else if(options.publish){
+      cli.debug('>>> You are going to publish your endpoints')
+    }else if(options.update){
+      cli.debug('>>> Your XXXX are going to be updated in 10 seconds')
+    }
 })
 
 
@@ -39,14 +49,11 @@ cli.main((args, options) => {
  * @return {[type]} [description]
  */
 function init() {
-
-    initRC((err, result) => {
-        locateComposrJson((err, result) => {
-            console.log('CompoSR ready to rock!')
-        })
+  initRC((err, result) => {
+    locateComposrJson((err, result) => {
+      cli.ok('CompoSR ready to rock!')
     })
-
-
+  })
 }
 
 /**
@@ -62,8 +69,6 @@ function locateComposrJson(next) {
             cli.info('U can use CPO ^^')
             next(null, true)
         } else {
-
-
 
             let schema = {
                 properties: {
@@ -133,64 +138,80 @@ function locateComposrJson(next) {
 
 function initRC(next) {
 
-    if (!fs.existsSync(USER_HOME_ROOT)) fs.mkdirSync(USER_HOME_ROOT)
+  if (!fs.existsSync(USER_HOME_ROOT)) fs.mkdirSync(USER_HOME_ROOT)
 
-    locateRc(next)
+  getUserCredentials(function(err, credentials){
+    if(err){
+      return next(err, null);
+    }else{
+      return loginClient(credentials, next)
+    }
+  })
 }
 
 /**
  * [locateRc description]
  * @return {[type]} [description]
  */
-function locateRc(next) {
+function getUserCredentials(next) {
 
-    fs.readFile(USER_HOME_ROOT + '/.composrc', 'utf8', (err, credentialsYml) => {
-
+    fs.readFile(COMPOSR_RC_FILE_PATH, 'utf8', (err, credentialsYml) => {
         if (err) {
+          cli.info('We were unable to find your CompoSR credentials, please enter them to continue:')
 
-            // start prompt
-            prompt.start()
-            //
-            prompt.get([{
-                name: 'clientId',
-                required: true,
-                conform: (value) => {
-                    return true
-                }
-            }, {
-                name: 'clientSecret',
-                required: true,
-                conform: (value) => {
-                    return true
-                }
-            }, {
-                name: 'scopes',
-                required: true,
-                conform: (value) => {
-                    return true
-                }
-            }, {
-                name: 'urlBase',
-                required: true,
-                conform: (value) => {
-                    return true
-                }
-            }], (err, result) => {
-
-                let credentials = {
-                    clientId: result.clientId || null,
-                    clientSecret: result.clientSecret || null,
-                    scopes: result.scopes || null,
-                    urlBase: result.urlBase || null
-                }
-
-                loginClient(credentials, next)
-            })
+          askForCredentials((err, credentials) =>{
+            if(err){
+              next(err, null);
+            }else{
+              next(null, credentials)
+            }
+          });
 
         } else {
-            loginClient(YAML.parse(credentialsYml), next)
+          next(null, YAML.parse(credentialsYml))
         }
     })
+}
+
+function askForCredentials(next){
+  // start prompt
+  prompt.start()
+  //
+  prompt.get([{
+    name: 'clientId',
+    required: true,
+    conform: (value) => {
+        return true
+    }
+  }, {
+    name: 'clientSecret',
+    required: true,
+    conform: (value) => {
+        return true
+    }
+  }, {
+    name: 'scopes',
+    required: true,
+    conform: (value) => {
+        return true
+    }
+  }, {
+    name: 'urlBase',
+    required: true,
+    conform: (value) => {
+        return true
+    }
+  }], (err, result) => {
+
+    let credentials = {
+      clientId: result.clientId || null,
+      clientSecret: result.clientSecret || null,
+      scopes: result.scopes || null,
+      urlBase: result.urlBase || null
+    }
+
+    next(err, credentials);
+  })
 }
 
 /**
@@ -200,13 +221,13 @@ function locateRc(next) {
  */
 function loginClient(credentials, next) {
 
-    login(credenials, function(err, creds){
+    login(credentials, function(err, creds){
       if(err){
-        cli.error(err)
+        cli.error(JSON.stringify(err, null, 2))
         return next(err, null)
       }else{
         cli.ok('Login successful');
-        return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next);
+        return writeCredentials(COMPOSR_RC_FILE_PATH, creds, next);
       }  
     });
 }
@@ -216,5 +237,5 @@ function loginClient(credentials, next) {
  * @return {[type]} [description]
  */
 function getUserHome() {
-    return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME']
+  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
 }

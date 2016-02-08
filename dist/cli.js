@@ -36,26 +36,47 @@ var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
+var _login = require('./login');
+
+var _login2 = _interopRequireDefault(_login);
+
+var _writeCredentials = require('./writeCredentials');
+
+var _writeCredentials2 = _interopRequireDefault(_writeCredentials);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 process.bin = process.title = 'composr-cli';
 
+//Lib modules
+
+
 // CONST
 var USER_HOME_ROOT = getUserHome() + '/.composr';
+var COMPOSR_RC_FILE_PATH = USER_HOME_ROOT + '/.composrrc';
+
 _prompt2.default.message = "CompoSR".cyan;
-_prompt2.default.delimiter = "><".green;
+_prompt2.default.delimiter = " - ".green;
 
 // CLI
 _cli2.default.parse({
-    init: ['i', 'Create a composr.json in your project.'],
-    publish: ['p', 'Publish all your phrases to CompoSR'],
-    update: ['u', 'Update at CompoSR.io your composr.json']
+  init: ['i', 'Create a composr.json in your project.'],
+  publish: ['p', 'Publish all your phrases to CompoSR'],
+  update: ['u', 'Update at CompoSR.io your composr.json']
 });
 
 _cli2.default.main(function (args, options) {
-    /*cli.debug(JSON.stringify(options))
-    cli.debug(args)*/
-    if (options.init) init();
+  /*cli.debug(JSON.stringify(options))
+  cli.debug(args)*/
+  _cli2.default.ok('Welcome to CompoSR');
+  if (options.init) {
+    _cli2.default.debug('>>> Bootstraping a new CompoSR application');
+    init();
+  } else if (options.publish) {
+    _cli2.default.debug('>>> You are going to publish your endpoints');
+  } else if (options.update) {
+    _cli2.default.debug('>>> Your XXXX are going to be updated in 10 seconds');
+  }
 });
 
 /**
@@ -63,12 +84,11 @@ _cli2.default.main(function (args, options) {
  * @return {[type]} [description]
  */
 function init() {
-
-    initRC(function (err, result) {
-        locateComposrJson(function (err, result) {
-            console.log('CompoSR ready to rock!');
-        });
+  initRC(function (err, result) {
+    locateComposrJson(function (err, result) {
+      _cli2.default.ok('CompoSR ready to rock!');
     });
+  });
 }
 
 /**
@@ -78,136 +98,152 @@ function init() {
  */
 function locateComposrJson(next) {
 
-    _jsonfile2.default.readFile(process.cwd() + '/composr.json', function (err, obj) {
-        if (!err) {
-            _cli2.default.ok(':: Your Initialization is done ::');
-            _cli2.default.info('U can use CPO ^^');
-            next(null, true);
-        } else {
+  _jsonfile2.default.readFile(process.cwd() + '/composr.json', function (err, obj) {
+    if (!err) {
+      _cli2.default.ok(':: Your Initialization is done ::');
+      _cli2.default.info('U can use CPO ^^');
+      next(null, true);
+    } else {
 
-            var schema = {
-                properties: {
-                    name: {
-                        message: 'Your composr vdomain name',
-                        default: _path2.default.basename(process.cwd()),
-                        type: 'string'
-                    },
-                    author: {
-                        message: 'Your name',
-                        default: _path2.default.basename(getUserHome()),
-                        type: 'string'
-                    },
-                    version: {
-                        message: 'Version',
-                        default: '1.0.0',
-                        type: 'string'
-                    },
-                    source_location: {
-                        message: 'Where is my phrases code?',
-                        default: './src',
-                        type: 'string'
-                    },
-                    git: {
-                        message: 'Git repository url',
-                        default: '',
-                        type: 'string'
-                    },
-                    license: {
-                        message: 'License',
-                        default: 'MIT',
-                        type: 'string'
-                    },
-                    mock_middleware: {
-                        message: 'Do you want activate mock middleware?',
-                        default: false,
-                        type: 'boolean'
-                    },
-                    validate_middleware: {
-                        message: 'Do you want activate validate middleware?',
-                        default: false,
-                        type: 'boolean'
-                    }
-                }
-            };
-
-            _prompt2.default.start();
-            _prompt2.default.get(schema, function (err, result) {
-
-                result.vd_dependencies = {};
-
-                // creating composr.json
-                _fs2.default.writeFile(process.cwd() + '/composr.json', JSON.stringify(result, null, 2), function (err) {
-                    if (err) {
-                        return next(err, false);
-                        throw err;
-                    }
-
-                    return next(null, true);
-                });
-            });
+      var schema = {
+        properties: {
+          name: {
+            message: 'Your composr vdomain name',
+            default: _path2.default.basename(process.cwd()),
+            type: 'string'
+          },
+          author: {
+            message: 'Your name',
+            default: _path2.default.basename(getUserHome()),
+            type: 'string'
+          },
+          version: {
+            message: 'Version',
+            default: '1.0.0',
+            type: 'string'
+          },
+          source_location: {
+            message: 'Where is my phrases code?',
+            default: './src',
+            type: 'string'
+          },
+          git: {
+            message: 'Git repository url',
+            default: '',
+            type: 'string'
+          },
+          license: {
+            message: 'License',
+            default: 'MIT',
+            type: 'string'
+          },
+          mock_middleware: {
+            message: 'Do you want activate mock middleware?',
+            default: false,
+            type: 'boolean'
+          },
+          validate_middleware: {
+            message: 'Do you want activate validate middleware?',
+            default: false,
+            type: 'boolean'
+          }
         }
-    });
+      };
+
+      _prompt2.default.start();
+      _prompt2.default.get(schema, function (err, result) {
+
+        result.vd_dependencies = {};
+
+        // creating composr.json
+        _fs2.default.writeFile(process.cwd() + '/composr.json', JSON.stringify(result, null, 2), function (err) {
+          if (err) {
+            return next(err, false);
+            throw err;
+          }
+
+          return next(null, true);
+        });
+      });
+    }
+  });
 }
 
 function initRC(next) {
 
-    if (!_fs2.default.existsSync(USER_HOME_ROOT)) _fs2.default.mkdirSync(USER_HOME_ROOT);
+  if (!_fs2.default.existsSync(USER_HOME_ROOT)) _fs2.default.mkdirSync(USER_HOME_ROOT);
 
-    locateRc(next);
+  getUserCredentials(function (err, credentials) {
+    if (err) {
+      return next(err, null);
+    } else {
+      return loginClient(credentials, next);
+    }
+  });
 }
 
 /**
  * [locateRc description]
  * @return {[type]} [description]
  */
-function locateRc(next) {
+function getUserCredentials(next) {
 
-    _fs2.default.readFile(USER_HOME_ROOT + '/.composrc', 'utf8', function (err, credentialsYml) {
+  _fs2.default.readFile(COMPOSR_RC_FILE_PATH, 'utf8', function (err, credentialsYml) {
+    if (err) {
+      _cli2.default.info('We were unable to find your CompoSR credentials, please enter them to continue:');
 
+      askForCredentials(function (err, credentials) {
         if (err) {
-
-            // start prompt
-            _prompt2.default.start();
-            //
-            _prompt2.default.get([{
-                name: 'clientId',
-                required: true,
-                conform: function conform(value) {
-                    return true;
-                }
-            }, {
-                name: 'clientSecret',
-                required: true,
-                conform: function conform(value) {
-                    return true;
-                }
-            }, {
-                name: 'scopes',
-                required: true,
-                conform: function conform(value) {
-                    return true;
-                }
-            }, {
-                name: 'urlBase',
-                required: true,
-                conform: function conform(value) {
-                    return true;
-                }
-            }], function (err, result) {
-
-                var credentials = {
-                    clientId: result.clientId || null,
-                    clientSecret: result.clientSecret || null,
-                    scopes: result.scopes || null,
-                    urlBase: result.urlBase || null
-                };
-
-                login(credentials, next);
-            });
+          next(err, null);
         } else {
-            login(_yamljs2.default.parse(credentialsYml), next);
+          next(null, credentials);
         }
-    });
+      });
+    } else {
+      next(null, _yamljs2.default.parse(credentialsYml));
+    }
+  });
+}
+
+function askForCredentials(next) {
+  // start prompt
+  _prompt2.default.start();
+  //
+  _prompt2.default.get([{
+    name: 'clientId',
+    required: true,
+    conform: function conform(value) {
+      return true;
+    }
+  }, {
+    name: 'clientSecret',
+    required: true,
+    conform: function conform(value) {
+      return true;
+    }
+  }, {
+    name: 'scopes',
+    required: true,
+    conform: function conform(value) {
+      return true;
+    }
+  }, {
+    name: 'urlBase',
+    required: true,
+    conform: function conform(value) {
+      return true;
+    }
+  }], function (err, result) {
+
+    var credentials = {
+      clientId: result.clientId || null,
+      clientSecret: result.clientSecret || null,
+      scopes: result.scopes || null,
+      urlBase: result.urlBase || null
+    };
+
+    next(err, credentials);
+  });
 }
 
 /**
@@ -215,26 +251,17 @@ function locateRc(next) {
  * @param  {[type]} credentials [description]
  * @return {[type]}             [description]
  */
-function login(credentials, next) {
+function loginClient(credentials, next) {
 
-    var corbelDriver = _corbelJs2.default.getDriver(credentials);
-
-    corbelDriver.iam.token().create().then(function (response) {
-
-        credentials.accessToken = response.data.accessToken;
-
-        var yamlString = _yamljs2.default.stringify(credentials, 4);
-
-        _fs2.default.writeFile(USER_HOME_ROOT + '/.composrc', yamlString, function (err) {
-            if (err) throw err;
-        });
-
-        _cli2.default.ok('Login successfully:');
-        return next(null, true);
-    }).catch(function (err) {
-        _cli2.default.error(err);
-        return next(err, null);
-    });
+  (0, _login2.default)(credentials, function (err, creds) {
+    if (err) {
+      _cli2.default.error(JSON.stringify(err, null, 2));
+      return next(err, null);
+    } else {
+      _cli2.default.ok('Login successful');
+      return (0, _writeCredentials2.default)(COMPOSR_RC_FILE_PATH, creds, next);
+    }
+  });
 }
 
 /**
@@ -242,5 +269,5 @@ function login(credentials, next) {
  * @return {[type]} [description]
  */
 function getUserHome() {
-    return process.env[process.platform == 'win32' ? 'USERPROFILE' : 'HOME'];
+  return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
 }

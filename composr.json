@@ -2,7 +2,7 @@
   "name": "composr-cli",
   "author": "jorge-serrano",
   "version": "1.0.0",
-  "source_location": "./src",
+  "source_location": "example",
   "git": "",
   "license": "MIT",
   "mock_middleware": true,

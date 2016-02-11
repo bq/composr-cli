@@ -36,9 +36,23 @@ var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
+var _login = require('./login');
+
+var _login2 = _interopRequireDefault(_login);
+
+var _writeCredentials = require('./writeCredentials');
+
+var _writeCredentials2 = _interopRequireDefault(_writeCredentials);
+
+var _findRaml = require('./findRaml');
+
+var _findRaml2 = _interopRequireDefault(_findRaml);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 process.bin = process.title = 'composr-cli';
+
+//Lib modules
 
 // CONST
 var USER_HOME_ROOT = getUserHome() + '/.composr';
@@ -56,6 +70,7 @@ _cli2.default.main(function (args, options) {
     /*cli.debug(JSON.stringify(options))
     cli.debug(args)*/
     if (options.init) init();
+    if (options.publish) publish();
 });
 
 /**
@@ -71,6 +86,13 @@ function init() {
     });
 }
 
+function publish() {
+    locateComposrJson(function (err, json) {
+        if (!err) return (0, _findRaml2.default)(json);
+        _cli2.default.error('Cannot locate composr.json, please generate new one with composr-cli --init');
+    });
+}
+
 /**
  * [locateComposrJson description]
  * @param  {Function} next [description]
@@ -81,8 +103,7 @@ function locateComposrJson(next) {
     _jsonfile2.default.readFile(process.cwd() + '/composr.json', function (err, obj) {
         if (!err) {
             _cli2.default.ok(':: Your Initialization is done ::');
-            _cli2.default.info('U can use CPO ^^');
-            next(null, true);
+            next(null, obj);
         } else {
 
             var schema = {
@@ -202,10 +223,10 @@ function locateRc(next) {
                     urlBase: result.urlBase || null
                 };
 
-                login(credentials, next);
+                loginClient(credentials, next);
             });
         } else {
-            login(_yamljs2.default.parse(credentialsYml), next);
+            loginClient(_yamljs2.default.parse(credentialsYml), next);
         }
     });
 }
@@ -215,25 +236,16 @@ function locateRc(next) {
  * @param  {[type]} credentials [description]
  * @return {[type]}             [description]
  */
-function login(credentials, next) {
+function loginClient(credentials, next) {
 
-    var corbelDriver = _corbelJs2.default.getDriver(credentials);
-
-    corbelDriver.iam.token().create().then(function (response) {
-
-        credentials.accessToken = response.data.accessToken;
-
-        var yamlString = _yamljs2.default.stringify(credentials, 4);
-
-        _fs2.default.writeFile(USER_HOME_ROOT + '/.composrc', yamlString, function (err) {
-            if (err) throw err;
-        });
-
-        _cli2.default.ok('Login successfully:');
-        return next(null, true);
-    }).catch(function (err) {
-        _cli2.default.error(err);
-        return next(err, null);
+    (0, _login2.default)(credenials, function (err, creds) {
+        if (err) {
+            _cli2.default.error(err);
+            return next(err, null);
+        } else {
+            _cli2.default.ok('Login successful');
+            return (0, _writeCredentials2.default)(USER_HOME_ROOT + '/.composrc', creds, next);
+        }
     });
 }
 

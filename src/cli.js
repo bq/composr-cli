@@ -10,9 +10,11 @@ import async from 'async'
 import corbel from 'corbel-js'
 import path from 'path'
 
+
 //Lib modules
 import login from './login'
 import writeCredentials from './writeCredentials'
+import findRaml from './findRaml'
 
 // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
@@ -30,7 +32,8 @@ cli.parse({
 cli.main((args, options) => {
     /*cli.debug(JSON.stringify(options))
     cli.debug(args)*/
-    if (options.init) init()
+    if(options.init) init()
+    if(options.publish) publish()
 })
 
 
@@ -45,8 +48,14 @@ function init() {
             console.log('CompoSR ready to rock!')
         })
     })
+}
 
 
+function publish(){
+  locateComposrJson((err,json) => {
+    if(!err) return findRaml(json)
+    cli.error('Cannot locate composr.json, please generate new one with composr-cli --init')
+  })
 }
 
 /**
@@ -59,8 +68,7 @@ function locateComposrJson(next) {
     jsonfile.readFile(process.cwd() + '/composr.json', function(err, obj) {
         if (!err) {
             cli.ok(':: Your Initialization is done ::')
-            cli.info('U can use CPO ^^')
-            next(null, true)
+            next(null, obj)
         } else {
 
 
@@ -207,7 +215,7 @@ function loginClient(credentials, next) {
       }else{
         cli.ok('Login successful');
         return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next);
-      }  
+      }
     });
 }
 

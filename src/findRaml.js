@@ -22,16 +22,16 @@ function locateFiles(conf,cb) {
     dir.readFiles(process.cwd()+'/'+conf.source_location, {
             match: /.raml$/,
             exclude: ['node_modules', 'test']
-        }, function(err, content, next) {
+        }, (err, content, next) => {
             if (err) throw err;
             console.log('content:', content);
             next();
         },
-        function(err, files) {
+        (err, files) => {
             if (err) throw err;
             console.log('finished reading files:', files);
             cb(files)
-        });
+        })
 }
 
 module.exports = findRaml

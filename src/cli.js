@@ -12,6 +12,7 @@ import login from './login'
 import writeCredentials from './writeCredentials'
 import findRaml from './findRaml'
 import apiDoc from './generateDoc'
+import parseRaml from './parseRaml'
 // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
 prompt.message = 'CompoSR'.cyan
@@ -52,8 +53,16 @@ function init () {
 
 function publish () {
   locateComposrJson((err, json) => {
-    if (!err) return findRaml(json)
-    cli.error('Cannot locate composr.json, please generate new one with composr-cli --init')
+    if (!err) return parseRaml(true, json, (lintErrors, result) => {
+      if (lintErrors) {
+        for (var i = 0; i < lintErrors.length; i++) {
+          cli.error(JSON.stringify(lintErrors[i], null, 2))
+        }
+      } else {
+        cli.ok('created .composr')
+      }
+    })
+    return cli.error('Cannot locate composr.json, please generate new one with composr-cli --init')
   })
 }
 
@@ -239,7 +248,6 @@ function locateRc (next) {
 
         loginClient(credentials, next)
       })
-
     } else {
       loginClient(YAML.parse(credentialsYml), next)
     }
@@ -267,5 +275,5 @@ function loginClient (credentials, next) {
  * @return {[type]} [description]
  */
 function getUserHome () {
-  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME']
+  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
 }

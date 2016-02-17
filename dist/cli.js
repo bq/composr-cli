@@ -40,6 +40,10 @@ var _generateDoc = require('./generateDoc');
 
 var _generateDoc2 = _interopRequireDefault(_generateDoc);
 
+var _parseRaml = require('./parseRaml');
+
+var _parseRaml2 = _interopRequireDefault(_parseRaml);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 process.bin = process.title = 'composr-cli';
@@ -87,8 +91,16 @@ function init() {
 
 function publish() {
   locateComposrJson(function (err, json) {
-    if (!err) return (0, _findRaml2.default)(json);
-    _cli2.default.error('Cannot locate composr.json, please generate new one with composr-cli --init');
+    if (!err) return (0, _parseRaml2.default)(true, json, function (lintErrors, result) {
+      if (lintErrors) {
+        for (var i = 0; i < lintErrors.length; i++) {
+          _cli2.default.error(JSON.stringify(lintErrors[i], null, 2));
+        }
+      } else {
+        _cli2.default.ok('created .composr');
+      }
+    });
+    return _cli2.default.error('Cannot locate composr.json, please generate new one with composr-cli --init');
   });
 }
 
@@ -297,5 +309,5 @@ function loginClient(credentials, next) {
  * @return {[type]} [description]
  */
 function getUserHome() {
-  return process.env[process.platform == 'win32' ? 'USERPROFILE' : 'HOME'];
+  return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
 }

@@ -1,7 +1,7 @@
 {
   "name": "composr-cli",
-  "version": "0.4.0",
-  "description": "CompoSR Command Line Interface",
+  "version": "0.5.0",
+  "description": "CompoSR | Command Line Interface",
   "main": "bin/cli.js",
   "bin": {
     "composr-cli": "bin/composr-cli"
@@ -71,7 +71,12 @@
     "corbel-js": "^0.3.4",
     "jsonfile": "^2.2.3",
     "mkdirp": "^0.5.1",
+    "node-dir": "^0.1.11",
     "prompt": "^0.2.14",
+    "raml-1-parser": "0.1.0-beta.6",
+    "raml2html": "^2.2.0",
+    "raml2obj": "^2.2.0",
+    "ramllint": "^1.2.2",
     "yamljs": "^0.2.4"
   }
 }

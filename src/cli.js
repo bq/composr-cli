@@ -13,32 +13,24 @@ import writeCredentials from './writeCredentials'
 import findRaml from './findRaml'
 import apiDoc from './generateDoc'
 import parseRaml from './parseRaml'
+//utils
+/**
+ * [getUserHome description]
+ * @return {[type]} [description]
+ */
+let getUserHome = () => {
+  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
+}
 // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
 prompt.message = 'CompoSR'.cyan
 prompt.delimiter = '><'.green
 
-// CLI
-cli.parse({
-  init: ['i', 'Create a composr.json in your project.'],
-  publish: ['p', 'Publish all your phrases to CompoSR'],
-  update: ['u', 'Update at CompoSR.io your composr.json'],
-  doc: ['d', 'Generate API documentation']
-})
-
-cli.main((args, options) => {
-  /* cli.debug(JSON.stringify(options))
-  cli.debug(args)*/
-  if (options.init) init()
-  if (options.publish) publish()
-  if (options.doc) generateDoc()
-})
-
 /**
  * [init description]
  * @return {[type]} [description]
  */
-function init () {
+let init = () => {
   initRC((err, result) => {
     if (err) console.log(err)
     locateComposrJson((err, result) => {
@@ -50,23 +42,31 @@ function init () {
     })
   })
 }
-
-function publish () {
+/**
+ * PUBLISH
+ */
+let publish = () => {
   locateComposrJson((err, json) => {
+    // call to parse raml
     if (!err) return parseRaml(true, json, (lintErrors, result) => {
-      if (lintErrors) {
-        for (var i = 0; i < lintErrors.length; i++) {
-          cli.error(JSON.stringify(lintErrors[i], null, 2))
+        // List erros from linter
+        if (lintErrors && Array.isArray(lintErrors)) {
+          for (var i = 0; i < lintErrors.length; i++) {
+            cli.error(JSON.stringify(lintErrors[i], null, 2))
+          }
+        } else if (typeof lintErrors === 'string') {
+          cli.error(lintErrors)
+        } else {
+          cli.ok('created .composr')
         }
-      } else {
-        cli.ok('created .composr')
-      }
-    })
+      })
     return cli.error('Cannot locate composr.json, please generate new one with composr-cli --init')
   })
 }
-
-function generateDoc () {
+/**
+ * Generate Doc
+ */
+let generateDoc = () => {
   // First of all, locate composr.json to get configuration
   locateComposrJson((err, json) => {
     cli.ok('composr.js located')
@@ -85,13 +85,18 @@ function generateDoc () {
   })
 }
 
+let convertYaml = () => {
+  let naviteObj = YAML.load('api.raml')
+  console.log(JSON.stringify(naviteObj, null, 2))
+}
+
 /**
- * [locateComposrJson description]
+ * [locateComposrJson description]i
  * @param  {Function} next [description]
  * @return {[type]}        [description]
  */
-function locateComposrJson (next) {
-  jsonfile.readFile(process.cwd() + '/composr.json', function (err, obj) {
+let locateComposrJson = next => {
+  jsonfile.readFile(process.cwd() + '/composr.json', (err, obj) => {
     if (!err) {
       cli.ok(':: Your Initialization is done ::')
       next(null, obj)
@@ -120,7 +125,7 @@ function locateComposrJson (next) {
           },
           source_location: {
             message: 'Where is my phrases code?',
-            default: './src',
+            default: 'src/',
             type: 'string'
           },
           git: {
@@ -173,7 +178,7 @@ function locateComposrJson (next) {
  * initRC
  * @return next
  */
-function initRC (next) {
+let initRC = next => {
   if (!fs.existsSync(USER_HOME_ROOT)) fs.mkdirSync(USER_HOME_ROOT)
 
   locateRc(next)
@@ -182,11 +187,11 @@ function initRC (next) {
 /**
  * Locate Api Raml, if not exists create new one
  */
-function locateApiRaml (config, next) {
+let locateApiRaml = (config, next) => {
   fs.access(process.cwd() + '/API.raml', fs.R_OK | fs.W_OK, (err) => {
     if (!err) return next()
 
-    let header = '#%RAML 1.0 \n' +
+    let header = '#%RAML 0.8 \n' +
       'title: ' + config.title + '\n' +
       'version: ' + config.version + '\n' +
       'baseUri: ' + config.baseUri + '\n' +
@@ -206,7 +211,7 @@ function locateApiRaml (config, next) {
  * [locateRc description]
  * @return {[type]} [description]
  */
-function locateRc (next) {
+let locateRc = next => {
   fs.readFile(USER_HOME_ROOT + '/.composrc', 'utf8', (err, credentialsYml) => {
     if (err) {
       // start prompt
@@ -259,8 +264,8 @@ function locateRc (next) {
  * @param  {[type]} credentials [description]
  * @return {[type]}             [description]
  */
-function loginClient (credentials, next) {
-  login(credentials, function (err, creds) {
+let loginClient = (credentials, next) => {
+  login(credentials, (err, creds) => {
     if (err) {
       cli.error(err)
       return next(err, null)
@@ -270,10 +275,26 @@ function loginClient (credentials, next) {
     }
   })
 }
+// CLI
+cli.parse({
+  init: ['i', 'Create a composr.json in your project.'],
+  publish: ['p', 'Publish all your phrases to CompoSR'],
+  update: ['u', 'Update at CompoSR.io your composr.json'],
+  doc: ['d', 'Generate API documentation'],
+  yaml: ['y', 'Yaml Conversion']
+})
+
+cli.main((args, options) => {
+  /* cli.debug(JSON.stringify(options))
+  cli.debug(args)*/
+  if (options.init) init()
+  if (options.publish) publish()
+  if (options.doc) generateDoc()
+  if (options.yaml) convertYaml()
+})
 /**
- * [getUserHome description]
- * @return {[type]} [description]
+ * uncaughtException handler
  */
-function getUserHome () {
-  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
-}
+process.on('uncaughtException', err => {
+  cli.error('Caught exception: ' + err)
+})

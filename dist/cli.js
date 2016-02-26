@@ -51,32 +51,24 @@ process.bin = process.title = 'composr-cli';
 // Lib modules
 
 
+//utils
+/**
+ * [getUserHome description]
+ * @return {[type]} [description]
+ */
+var getUserHome = function getUserHome() {
+  return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
+};
 // CONST
 var USER_HOME_ROOT = getUserHome() + '/.composr';
 _prompt2.default.message = 'CompoSR'.cyan;
 _prompt2.default.delimiter = '><'.green;
 
-// CLI
-_cli2.default.parse({
-  init: ['i', 'Create a composr.json in your project.'],
-  publish: ['p', 'Publish all your phrases to CompoSR'],
-  update: ['u', 'Update at CompoSR.io your composr.json'],
-  doc: ['d', 'Generate API documentation']
-});
-
-_cli2.default.main(function (args, options) {
-  /* cli.debug(JSON.stringify(options))
-  cli.debug(args)*/
-  if (options.init) init();
-  if (options.publish) publish();
-  if (options.doc) generateDoc();
-});
-
 /**
  * [init description]
  * @return {[type]} [description]
  */
-function init() {
+var init = function init() {
   initRC(function (err, result) {
     if (err) console.log(err);
     locateComposrJson(function (err, result) {
@@ -87,24 +79,32 @@ function init() {
       });
     });
   });
-}
-
-function publish() {
+};
+/**
+ * PUBLISH
+ */
+var publish = function publish() {
   locateComposrJson(function (err, json) {
+    // call to parse raml
     if (!err) return (0, _parseRaml2.default)(true, json, function (lintErrors, result) {
-      if (lintErrors) {
+      // List erros from linter
+      if (lintErrors && Array.isArray(lintErrors)) {
         for (var i = 0; i < lintErrors.length; i++) {
           _cli2.default.error(JSON.stringify(lintErrors[i], null, 2));
         }
+      } else if (typeof lintErrors === 'string') {
+        _cli2.default.error(lintErrors);
       } else {
         _cli2.default.ok('created .composr');
       }
     });
     return _cli2.default.error('Cannot locate composr.json, please generate new one with composr-cli --init');
   });
-}
-
-function generateDoc() {
+};
+/**
+ * Generate Doc
+ */
+var generateDoc = function generateDoc() {
   // First of all, locate composr.json to get configuration
   locateComposrJson(function (err, json) {
     _cli2.default.ok('composr.js located');
@@ -121,14 +121,19 @@ function generateDoc() {
     }
     _cli2.default.error('Cannot locate composr.json, please generate new one with composr-cli --init');
   });
-}
+};
+
+var convertYaml = function convertYaml() {
+  var naviteObj = _yamljs2.default.load('api.raml');
+  console.log(JSON.stringify(naviteObj, null, 2));
+};
 
 /**
- * [locateComposrJson description]
+ * [locateComposrJson description]i
  * @param  {Function} next [description]
  * @return {[type]}        [description]
  */
-function locateComposrJson(next) {
+var locateComposrJson = function locateComposrJson(next) {
   _jsonfile2.default.readFile(process.cwd() + '/composr.json', function (err, obj) {
     if (!err) {
       _cli2.default.ok(':: Your Initialization is done ::');
@@ -158,7 +163,7 @@ function locateComposrJson(next) {
           },
           source_location: {
             message: 'Where is my phrases code?',
-            default: './src',
+            default: 'src/',
             type: 'string'
           },
           git: {
@@ -205,26 +210,26 @@ function locateComposrJson(next) {
       });
     }
   });
-}
+};
 
 /**
  * initRC
  * @return next
  */
-function initRC(next) {
+var initRC = function initRC(next) {
   if (!_fs2.default.existsSync(USER_HOME_ROOT)) _fs2.default.mkdirSync(USER_HOME_ROOT);
 
   locateRc(next);
-}
+};
 
 /**
  * Locate Api Raml, if not exists create new one
  */
-function locateApiRaml(config, next) {
+var locateApiRaml = function locateApiRaml(config, next) {
   _fs2.default.access(process.cwd() + '/API.raml', _fs2.default.R_OK | _fs2.default.W_OK, function (err) {
     if (!err) return next();
 
-    var header = '#%RAML 1.0 \n' + 'title: ' + config.title + '\n' + 'version: ' + config.version + '\n' + 'baseUri: ' + config.baseUri + '\n' + 'mediaType: application/json';
+    var header = '#%RAML 0.8 \n' + 'title: ' + config.title + '\n' + 'version: ' + config.version + '\n' + 'baseUri: ' + config.baseUri + '\n' + 'mediaType: application/json';
 
     // creating API.raml
     _fs2.default.writeFile(process.cwd() + '/API.raml', header, function (err) {
@@ -234,13 +239,13 @@ function locateApiRaml(config, next) {
       return next(null, true);
     });
   });
-}
+};
 
 /**
  * [locateRc description]
  * @return {[type]} [description]
  */
-function locateRc(next) {
+var locateRc = function locateRc(next) {
   _fs2.default.readFile(USER_HOME_ROOT + '/.composrc', 'utf8', function (err, credentialsYml) {
     if (err) {
       // start prompt
@@ -286,14 +291,14 @@ function locateRc(next) {
       loginClient(_yamljs2.default.parse(credentialsYml), next);
     }
   });
-}
+};
 
 /**
  * [login description]
  * @param  {[type]} credentials [description]
  * @return {[type]}             [description]
  */
-function loginClient(credentials, next) {
+var loginClient = function loginClient(credentials, next) {
   (0, _login2.default)(credentials, function (err, creds) {
     if (err) {
       _cli2.default.error(err);
@@ -303,11 +308,27 @@ function loginClient(credentials, next) {
       return (0, _writeCredentials2.default)(USER_HOME_ROOT + '/.composrc', creds, next);
     }
   });
-}
+};
+// CLI
+_cli2.default.parse({
+  init: ['i', 'Create a composr.json in your project.'],
+  publish: ['p', 'Publish all your phrases to CompoSR'],
+  update: ['u', 'Update at CompoSR.io your composr.json'],
+  doc: ['d', 'Generate API documentation'],
+  yaml: ['y', 'Yaml Conversion']
+});
+
+_cli2.default.main(function (args, options) {
+  /* cli.debug(JSON.stringify(options))
+  cli.debug(args)*/
+  if (options.init) init();
+  if (options.publish) publish();
+  if (options.doc) generateDoc();
+  if (options.yaml) convertYaml();
+});
 /**
- * [getUserHome description]
- * @return {[type]} [description]
+ * uncaughtException handler
  */
-function getUserHome() {
-  return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
-}
+process.on('uncaughtException', function (err) {
+  _cli2.default.error('Caught exception: ' + err);
+});

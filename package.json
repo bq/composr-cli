@@ -70,13 +70,15 @@
     "cli": "^0.11.1",
     "corbel-js": "^0.3.4",
     "jsonfile": "^2.2.3",
+    "lodash": "^4.5.1",
     "mkdirp": "^0.5.1",
     "node-dir": "^0.1.11",
     "prompt": "^0.2.14",
     "raml-1-parser": "0.1.0-beta.6",
-    "raml2html": "^2.2.0",
+    "raml2html": "git+https://github.com/corbel-platform/raml2html.git",
     "raml2obj": "^2.2.0",
     "ramllint": "^1.2.2",
+    "recursive-readdir": "^1.3.0",
     "yamljs": "^0.2.4"
   }
 }

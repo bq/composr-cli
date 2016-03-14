@@ -15,7 +15,8 @@ function login(credentials, next) {
     .create()
     .then(response => {
       credentials.accessToken = response.data.accessToken
-      return next(null, credentials)
+
+      return next(null, credentials, corbel.jwt.decode(credentials.accessToken).domainId)
     }).catch((err) => {
       return next(err, null)
     })

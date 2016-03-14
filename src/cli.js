@@ -10,7 +10,7 @@ import path from 'path'
 // Lib modules
 import login from './login'
 import writeCredentials from './writeCredentials'
-import findRaml from './findRaml'
+//import findRaml from './findRaml'
 import apiDoc from './generateDoc'
 import parseRaml from './parseRaml'
 //utils
@@ -21,6 +21,11 @@ import parseRaml from './parseRaml'
 let getUserHome = () => {
   return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
 }
+/**
+ * Credentials
+ */
+let ACCESS_TOKEN = null
+let DOMAIN = null
 // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
 prompt.message = 'CompoSR'.cyan
@@ -108,6 +113,11 @@ let locateComposrJson = next => {
             default: path.basename(process.cwd()),
             type: 'string'
           },
+          subdomain: {
+            message: 'Your Subdomain name',
+            default: '',
+            type: 'string'
+          },
           baseUri: {
             message: 'Your composr vdomain url',
             default: 'https://api.example.com',
@@ -161,12 +171,11 @@ let locateComposrJson = next => {
         if (err) cli.error(err)
         result.vd_dependencies = {}
         result.doc_folder = 'doc/'
+        result.domain = DOMAIN
+        result.id = DOMAIN + '!' + result.name
         // creating composr.json
         fs.writeFile(process.cwd() + '/composr.json', JSON.stringify(result, null, 2), (err) => {
-          if (err) {
-            return next(err, false)
-          }
-
+          if (err) return next(err, false)
           return next(null, true)
         })
       })
@@ -180,7 +189,6 @@ let locateComposrJson = next => {
  */
 let initRC = next => {
   if (!fs.existsSync(USER_HOME_ROOT)) fs.mkdirSync(USER_HOME_ROOT)
-
   locateRc(next)
 }
 
@@ -265,12 +273,14 @@ let locateRc = next => {
  * @return {[type]}             [description]
  */
 let loginClient = (credentials, next) => {
-  login(credentials, (err, creds) => {
+  login(credentials, (err, creds, domain) => {
     if (err) {
       cli.error(err)
       return next(err, null)
     } else {
       cli.ok('Login successful')
+      ACCESS_TOKEN = creds.access_token
+      DOMAIN = domain
       return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
     }
   })

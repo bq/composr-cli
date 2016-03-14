@@ -32,6 +32,10 @@ var _recursiveReaddir = require('recursive-readdir');
 
 var _recursiveReaddir2 = _interopRequireDefault(_recursiveReaddir);
 
+var _async = require('async');
+
+var _async2 = _interopRequireDefault(_async);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Instances
@@ -50,7 +54,7 @@ var parseRaml = function parseRaml(dev, config, next) {
     if (exists) {
       decodeRaml(config, ramlLoc, function (err, result) {
         if (err) return next(err, null);
-        codeToHash(result, function (err, objToComposrJson) {
+        getRoutesFilesPaths(result, function (err, objToComposrJson) {
           if (err) return next(err, null);
           writeToComposrJson(config, objToComposrJson, next);
         });
@@ -92,49 +96,32 @@ var decodeRaml = function decodeRaml(config, ramlLoc, next) {
 /**
  * Function to encode code src to base64 hash
  */
-var codeToHash = function codeToHash(ramlObj, next) {
+var getRoutesFilesPaths = function getRoutesFilesPaths(ramlObj, next) {
   var completePath = process.cwd() + '/' + CONFIG.source_location;
-
-  var filePaths = ramlObj.phrases.map(function (route) {
+  var ramlRoutes = ramlObj.phrases.map(function (route) {
     if (_lodash2.default.has(route, 'get')) return route.get.code_path;
     if (_lodash2.default.has(route, 'put')) return route.put.code_path;
     if (_lodash2.default.has(route, 'post')) return route.post.code_path;
     if (_lodash2.default.has(route, 'delete')) return route.delete.code_path;
   });
-
+  var phrases = [];
+  // Search code files in path
   (0, _recursiveReaddir2.default)(completePath, function (err, files) {
     if (err) return next(err, null);
-
-    var filesToCompare = files.map(function (route) {
-      var _filesArr = route.split('/');
-      return _filesArr[_filesArr.length - 1];
+    // Compare results with API raml routes
+    compareFiles(files, ramlRoutes, function (err, results) {
+      // Handler files founded and correspond with API route
+      if (err) return next(err, null);
+      _async2.default.filter(results, function (file, callback) {
+        codeToHash(file.path, function (err, hashObj) {
+          file.hash = hashObj;
+          phrases.push(file);
+          callback(null, !err);
+        });
+      }, function (results) {
+        return next(null, phrases);
+      });
     });
-
-    var filesFounded = _lodash2.default.intersection(filePaths, filesToCompare);
-    _cli2.default.info('==============================');
-    _cli2.default.info('| Routes without source code: |');
-    _cli2.default.info('==============================');
-    _lodash2.default.difference(filePaths, filesToCompare).map(function (route) {
-      _cli2.default.info(route);
-    });
-    console.log('\n');
-    _cli2.default.ok('==============================');
-    _cli2.default.ok('| Routes With source code:   |');
-    _cli2.default.ok('==============================');
-    filesFounded.map(function (route) {
-      _cli2.default.ok(route);
-    });
-  });
-  // TODO: convertir la ruta en real, solo con el nombre del archivo no se puede abrir el file
-  async.filter(filePaths, function (filePath, callback) {
-    _fs2.default.access(filePath, function (err) {
-      callback(null, !err);
-    });
-  }, function (err, results) {
-    // results now equals an array of the existing files
-    if (err) return next(err, null);
-    console.log(results);
-    return next(null, ramlObj);
   });
 };
 /**
@@ -152,6 +139,61 @@ var writeToComposrJson = function writeToComposrJson(config, ramlObj, next) {
     compressFile(function (err, result) {
       if (!err) return next(null, true);
       return next(err, null);
+    });
+  });
+};
+/**
+ * Compare files betwen API RAMl and FS founded files
+ */
+var compareFiles = function compareFiles(files, ramlRoutes, next) {
+  // Get filename from path
+  var filesToCompare = files.map(function (route) {
+    var _fileName = route.split('/');
+    return _fileName[_fileName.length - 1];
+  });
+  // Get filename and file path together
+  var filesCompleteObj = files.map(function (route) {
+    var fileName = route.split('/');
+    var fileObj = {};
+    fileObj.fileName = fileName[fileName.length - 1];
+    fileObj.path = route;
+    return fileObj;
+  });
+  // difference betwen files from raml routes and FS
+  var filesFounded = _lodash2.default.intersection(ramlRoutes, filesToCompare);
+  _cli2.default.info('==============================');
+  _cli2.default.info('| Routes without source code: |');
+  _cli2.default.info('==============================');
+  _lodash2.default.difference(ramlRoutes, filesToCompare).map(function (route) {
+    _cli2.default.info(route);
+  });
+  console.log('\n');
+  _cli2.default.ok('==============================');
+  _cli2.default.ok('| Routes With source code:    |');
+  _cli2.default.ok('==============================');
+  filesFounded = filesFounded.map(function (route) {
+    _cli2.default.ok(route);
+    var indexRoute = _lodash2.default.findIndex(filesCompleteObj, function (o) {
+      return o.fileName === route;
+    });
+    var resObj = {
+      path: filesCompleteObj[indexRoute].path,
+      phraseIndex: ramlRoutes.indexOf(route)
+    };
+    return resObj;
+  });
+
+  return next(null, filesFounded);
+};
+/**
+ * code to Hash
+ */
+var codeToHash = function codeToHash(filePath, next) {
+  _fs2.default.readFile(filePath, function (err, data) {
+    if (err) return next(err, null);
+    return next(null, {
+      hash: new Buffer(data).toString('base64'),
+      md5: _crypto2.default.createHash('md5').update(data).digest('hex')
     });
   });
 };

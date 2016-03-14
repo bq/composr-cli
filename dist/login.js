@@ -17,7 +17,8 @@ function login(credentials, next) {
 
   corbelDriver.iam.token().create().then(function (response) {
     credentials.accessToken = response.data.accessToken;
-    return next(null, credentials);
+
+    return next(null, credentials, _corbelJs2.default.jwt.decode(credentials.accessToken).domainId);
   }).catch(function (err) {
     return next(err, null);
   });

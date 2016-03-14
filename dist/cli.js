@@ -32,10 +32,6 @@ var _writeCredentials = require('./writeCredentials');
 
 var _writeCredentials2 = _interopRequireDefault(_writeCredentials);
 
-var _findRaml = require('./findRaml');
-
-var _findRaml2 = _interopRequireDefault(_findRaml);
-
 var _generateDoc = require('./generateDoc');
 
 var _generateDoc2 = _interopRequireDefault(_generateDoc);
@@ -50,6 +46,8 @@ process.bin = process.title = 'composr-cli';
 
 // Lib modules
 
+//import findRaml from './findRaml'
+
 
 //utils
 /**
@@ -59,6 +57,11 @@ process.bin = process.title = 'composr-cli';
 var getUserHome = function getUserHome() {
   return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
 };
+/**
+ * Credentials
+ */
+var ACCESS_TOKEN = null;
+var DOMAIN = null;
 // CONST
 var USER_HOME_ROOT = getUserHome() + '/.composr';
 _prompt2.default.message = 'CompoSR'.cyan;
@@ -146,6 +149,11 @@ var locateComposrJson = function locateComposrJson(next) {
             default: _path2.default.basename(process.cwd()),
             type: 'string'
           },
+          subdomain: {
+            message: 'Your Subdomain name',
+            default: '',
+            type: 'string'
+          },
           baseUri: {
             message: 'Your composr vdomain url',
             default: 'https://api.example.com',
@@ -199,12 +207,11 @@ var locateComposrJson = function locateComposrJson(next) {
         if (err) _cli2.default.error(err);
         result.vd_dependencies = {};
         result.doc_folder = 'doc/';
+        result.domain = DOMAIN;
+        result.id = DOMAIN + '!' + result.name;
         // creating composr.json
         _fs2.default.writeFile(process.cwd() + '/composr.json', JSON.stringify(result, null, 2), function (err) {
-          if (err) {
-            return next(err, false);
-          }
-
+          if (err) return next(err, false);
           return next(null, true);
         });
       });
@@ -218,7 +225,6 @@ var locateComposrJson = function locateComposrJson(next) {
  */
 var initRC = function initRC(next) {
   if (!_fs2.default.existsSync(USER_HOME_ROOT)) _fs2.default.mkdirSync(USER_HOME_ROOT);
-
   locateRc(next);
 };
 
@@ -299,12 +305,14 @@ var locateRc = function locateRc(next) {
  * @return {[type]}             [description]
  */
 var loginClient = function loginClient(credentials, next) {
-  (0, _login2.default)(credentials, function (err, creds) {
+  (0, _login2.default)(credentials, function (err, creds, domain) {
     if (err) {
       _cli2.default.error(err);
       return next(err, null);
     } else {
       _cli2.default.ok('Login successful');
+      ACCESS_TOKEN = creds.access_token;
+      DOMAIN = domain;
       return (0, _writeCredentials2.default)(USER_HOME_ROOT + '/.composrc', creds, next);
     }
   });

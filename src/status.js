@@ -5,10 +5,10 @@ import chalk from 'chalk'
 let _request = (urls, callback) => {
   'use strict'
 
-  let results = {},
-    t = urls.length,
-    c = 0,
-    handler = (error, response, body) => {
+  let results = {}
+  let t = urls.length
+  let c = 0
+  let handler = (error, response, body) => {
 
       let url = response.request.uri.href
 

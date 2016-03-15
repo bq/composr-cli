@@ -40,13 +40,15 @@ var _status = require('./status');
 
 var _status2 = _interopRequireDefault(_status);
 
+var _publish = require('./publish');
+
+var _publish2 = _interopRequireDefault(_publish);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 process.bin = process.title = 'composr-cli';
 // Lib modules
 
-
-//utils
 
 /**
  * [getUserHome description]
@@ -84,11 +86,17 @@ var init = function init() {
  * PUBLISH
  */
 var publish = function publish() {
+  _simpleSpinner2.default.start();
   locateComposrJson(function (err, json) {
-    _cli2.default.info('publishing phrases');
+    _simpleSpinner2.default.stop();
+    if (err) return _cli2.default.error(err);
+    (0, _publish2.default)(_simpleSpinner2.default, _cli2.default);
   });
 };
 
+/**
+ * Get environments status
+ */
 var getStatus = function getStatus() {
   locateComposrJson(function (err, obj) {
     if (err) return _cli2.default.error(err);
@@ -97,13 +105,6 @@ var getStatus = function getStatus() {
     });
     (0, _status2.default)(envStatus, _simpleSpinner2.default);
   });
-  /*  let table = new asciiTable('CompoSR environments status')
-  table
-    .setHeading('', 'Name', 'Age')
-    .addRow(1, 'Bob', 52)
-    .addRow(2, 'John', 34)
-    .addRow(3, 'Jim', 83)
-   console.log(table.toString())*/
 };
 
 /**
@@ -271,7 +272,6 @@ _cli2.default.main(function (args, options) {
   cli.debug(args)*/
   if (options.init) init();
   if (options.publish) publish();
-  if (options.doc) generateDoc();
   if (options.status) getStatus();
 });
 /**

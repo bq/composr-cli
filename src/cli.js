@@ -11,19 +11,18 @@ import spinner from 'simple-spinner'
 import login from './login'
 import writeCredentials from './writeCredentials'
 import status from './status'
-
-//utils
+import Publish from './publish'
 
 /**
  * [getUserHome description]
  * @return {[type]} [description]
  */
 let getUserHome = () => {
-    return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
-  }
-  /**
-   * Credentials
-   */
+  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
+}
+/**
+ * Credentials
+ */
 let ACCESS_TOKEN = null
 let DOMAIN = null
   // CONST
@@ -36,42 +35,39 @@ prompt.delimiter = '><'.green
  * @return {[type]} [description]
  */
 let init = () => {
-    spinner.start()
-    initRC((err, result) => {
-      spinner.stop()
+  spinner.start()
+  initRC((err, result) => {
+    spinner.stop()
+    if (err) cli.error(err)
+    locateComposrJson((err, result) => {
       if (err) cli.error(err)
-      locateComposrJson((err, result) => {
-        if (err) cli.error(err)
-        cli.ok('CompoSR ready to rock!')
-      })
+      cli.ok('CompoSR ready to rock!')
     })
-  }
+  })
+}
   /**
    * PUBLISH
    */
 let publish = () => {
+  spinner.start()
   locateComposrJson((err, json) => {
-    cli.info('publishing phrases')
+    spinner.stop()
+    if (err) return cli.error(err)
+    Publish(spinner, cli)
   })
 }
 
-
+/**
+ * Get environments status
+ */
 let getStatus = () => {
   locateComposrJson((err, obj) => {
-    if(err) return cli.error(err)
+    if (err) return cli.error(err)
     let envStatus = obj.environments.map(url => {
       return url + '/status'
     })
     status(envStatus, spinner)
   })
-  /*  let table = new asciiTable('CompoSR environments status')
-  table
-    .setHeading('', 'Name', 'Age')
-    .addRow(1, 'Bob', 52)
-    .addRow(2, 'John', 34)
-    .addRow(3, 'Jim', 83)
-
-  console.log(table.toString())*/
 }
 
 /**
@@ -213,19 +209,19 @@ let locateRc = next => {
  * @return {[type]}             [description]
  */
 let loginClient = (credentials, next) => {
-    login(credentials, (err, creds, domain) => {
-      if (err) {
-        cli.error(err)
-        return next(err, null)
-      } else {
-        cli.ok('Login successful')
-        ACCESS_TOKEN = creds.access_token
-        DOMAIN = domain
-        return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
-      }
-    })
-  }
-  // CLI
+  login(credentials, (err, creds, domain) => {
+    if (err) {
+      cli.error(err)
+      return next(err, null)
+    } else {
+      cli.ok('Login successful')
+      ACCESS_TOKEN = creds.access_token
+      DOMAIN = domain
+      return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
+    }
+  })
+}
+// CLI
 cli.parse({
   init: ['i', 'Create a composr.json in your project.'],
   publish: ['p', 'Publish all your phrases to CompoSR'],
@@ -235,16 +231,15 @@ cli.parse({
 })
 
 cli.main((args, options) => {
-    /* cli.debug(JSON.stringify(options))
-    cli.debug(args)*/
-    if (options.init) init()
-    if (options.publish) publish()
-    if (options.doc) generateDoc()
-    if (options.status) getStatus()
-  })
-  /**
-   * uncaughtException handler
-   */
+  /* cli.debug(JSON.stringify(options))
+  cli.debug(args)*/
+  if (options.init) init()
+  if (options.publish) publish()
+  if (options.status) getStatus()
+})
+/**
+ * uncaughtException handler
+ */
 process.on('uncaughtException', err => {
   cli.error('Caught exception: ' + err)
 })

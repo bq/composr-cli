@@ -17,10 +17,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var _request = function _request(urls, callback) {
   'use strict';
 
-  var results = {},
-      t = urls.length,
-      c = 0,
-      handler = function handler(error, response, body) {
+  var results = {};
+  var t = urls.length;
+  var c = 0;
+  var handler = function handler(error, response, body) {
 
     var url = response.request.uri.href;
 

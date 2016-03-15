@@ -6,27 +6,27 @@ import fs from 'fs'
 import YAML from 'yamljs'
 import prompt from 'prompt'
 import path from 'path'
-
+import spinner from 'simple-spinner'
 // Lib modules
 import login from './login'
 import writeCredentials from './writeCredentials'
-//import findRaml from './findRaml'
-import apiDoc from './generateDoc'
-import parseRaml from './parseRaml'
+import status from './status'
+
 //utils
+
 /**
  * [getUserHome description]
  * @return {[type]} [description]
  */
 let getUserHome = () => {
-  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
-}
-/**
- * Credentials
- */
+    return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
+  }
+  /**
+   * Credentials
+   */
 let ACCESS_TOKEN = null
 let DOMAIN = null
-// CONST
+  // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
 prompt.message = 'CompoSR'.cyan
 prompt.delimiter = '><'.green
@@ -36,63 +36,42 @@ prompt.delimiter = '><'.green
  * @return {[type]} [description]
  */
 let init = () => {
-  initRC((err, result) => {
-    if (err) console.log(err)
-    locateComposrJson((err, result) => {
-      if (err) console.log(err)
-      locateApiRaml(result, (err, result) => {
+    spinner.start()
+    initRC((err, result) => {
+      spinner.stop()
+      if (err) cli.error(err)
+      locateComposrJson((err, result) => {
         if (err) cli.error(err)
         cli.ok('CompoSR ready to rock!')
       })
     })
-  })
-}
-/**
- * PUBLISH
- */
+  }
+  /**
+   * PUBLISH
+   */
 let publish = () => {
   locateComposrJson((err, json) => {
-    // call to parse raml
-    if (!err) return parseRaml(true, json, (lintErrors, result) => {
-        // List erros from linter
-        if (lintErrors && Array.isArray(lintErrors)) {
-          for (var i = 0; i < lintErrors.length; i++) {
-            cli.error(JSON.stringify(lintErrors[i], null, 2))
-          }
-        } else if (typeof lintErrors === 'string') {
-          cli.error(lintErrors)
-        } else {
-          cli.ok('created .composr')
-        }
-      })
-    return cli.error('Cannot locate composr.json, please generate new one with composr-cli --init')
-  })
-}
-/**
- * Generate Doc
- */
-let generateDoc = () => {
-  // First of all, locate composr.json to get configuration
-  locateComposrJson((err, json) => {
-    cli.ok('composr.js located')
-    // Locating api.raml file
-    if (!err) {
-      return locateApiRaml(json, (err, result) => {
-        if (err) return cli.error(err)
-        // Call to apiDoc to generate documentation
-        apiDoc(json, (err, result) => {
-          if (err) return cli.error(err)
-          cli.ok('API Documentation generated!')
-        })
-      })
-    }
-    cli.error('Cannot locate composr.json, please generate new one with composr-cli --init')
+    cli.info('publishing phrases')
   })
 }
 
-let convertYaml = () => {
-  let naviteObj = YAML.load('api.raml')
-  console.log(JSON.stringify(naviteObj, null, 2))
+
+let getStatus = () => {
+  locateComposrJson((err, obj) => {
+    if(err) return cli.error(err)
+    let envStatus = obj.environments.map(url => {
+      return url + '/status'
+    })
+    status(envStatus, spinner)
+  })
+  /*  let table = new asciiTable('CompoSR environments status')
+  table
+    .setHeading('', 'Name', 'Age')
+    .addRow(1, 'Bob', 52)
+    .addRow(2, 'John', 34)
+    .addRow(3, 'Jim', 83)
+
+  console.log(table.toString())*/
 }
 
 /**
@@ -103,7 +82,6 @@ let convertYaml = () => {
 let locateComposrJson = next => {
   jsonfile.readFile(process.cwd() + '/composr.json', (err, obj) => {
     if (!err) {
-      cli.ok(':: Your Initialization is done ::')
       next(null, obj)
     } else {
       let schema = {
@@ -147,21 +125,6 @@ let locateComposrJson = next => {
             message: 'License',
             default: 'MIT',
             type: 'string'
-          },
-          mock_middleware: {
-            message: 'Do you want activate mock middleware?',
-            default: false,
-            type: 'boolean'
-          },
-          validate_middleware: {
-            message: 'Do you want activate validate middleware?',
-            default: false,
-            type: 'boolean'
-          },
-          api_raml_location: {
-            message: 'What is the name of your api.raml?',
-            default: 'api.raml',
-            type: 'string'
           }
         }
       }
@@ -170,10 +133,10 @@ let locateComposrJson = next => {
       prompt.get(schema, (err, result) => {
         if (err) cli.error(err)
         result.vd_dependencies = {}
-        result.doc_folder = 'doc/'
         result.domain = DOMAIN
         result.id = DOMAIN + '!' + result.name
-        // creating composr.json
+        result.environments = []
+          // creating composr.json
         fs.writeFile(process.cwd() + '/composr.json', JSON.stringify(result, null, 2), (err) => {
           if (err) return next(err, false)
           return next(null, true)
@@ -193,29 +156,6 @@ let initRC = next => {
 }
 
 /**
- * Locate Api Raml, if not exists create new one
- */
-let locateApiRaml = (config, next) => {
-  fs.access(process.cwd() + '/API.raml', fs.R_OK | fs.W_OK, (err) => {
-    if (!err) return next()
-
-    let header = '#%RAML 0.8 \n' +
-      'title: ' + config.title + '\n' +
-      'version: ' + config.version + '\n' +
-      'baseUri: ' + config.baseUri + '\n' +
-      'mediaType: application/json'
-
-    // creating API.raml
-    fs.writeFile(process.cwd() + '/API.raml', header, (err) => {
-      if (err) {
-        return next(err, false)
-      }
-      return next(null, true)
-    })
-  })
-}
-
-/**
  * [locateRc description]
  * @return {[type]} [description]
  */
@@ -224,7 +164,7 @@ let locateRc = next => {
     if (err) {
       // start prompt
       prompt.start()
-      //
+        //
       prompt.get([{
         name: 'clientId',
         required: true,
@@ -273,38 +213,38 @@ let locateRc = next => {
  * @return {[type]}             [description]
  */
 let loginClient = (credentials, next) => {
-  login(credentials, (err, creds, domain) => {
-    if (err) {
-      cli.error(err)
-      return next(err, null)
-    } else {
-      cli.ok('Login successful')
-      ACCESS_TOKEN = creds.access_token
-      DOMAIN = domain
-      return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
-    }
-  })
-}
-// CLI
+    login(credentials, (err, creds, domain) => {
+      if (err) {
+        cli.error(err)
+        return next(err, null)
+      } else {
+        cli.ok('Login successful')
+        ACCESS_TOKEN = creds.access_token
+        DOMAIN = domain
+        return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
+      }
+    })
+  }
+  // CLI
 cli.parse({
   init: ['i', 'Create a composr.json in your project.'],
   publish: ['p', 'Publish all your phrases to CompoSR'],
   update: ['u', 'Update at CompoSR.io your composr.json'],
   doc: ['d', 'Generate API documentation'],
-  yaml: ['y', 'Yaml Conversion']
+  status: ['s', 'Get Your CompoSR Project environments status']
 })
 
 cli.main((args, options) => {
-  /* cli.debug(JSON.stringify(options))
-  cli.debug(args)*/
-  if (options.init) init()
-  if (options.publish) publish()
-  if (options.doc) generateDoc()
-  if (options.yaml) convertYaml()
-})
-/**
- * uncaughtException handler
- */
+    /* cli.debug(JSON.stringify(options))
+    cli.debug(args)*/
+    if (options.init) init()
+    if (options.publish) publish()
+    if (options.doc) generateDoc()
+    if (options.status) getStatus()
+  })
+  /**
+   * uncaughtException handler
+   */
 process.on('uncaughtException', err => {
   cli.error('Caught exception: ' + err)
 })

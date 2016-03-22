@@ -66,19 +66,25 @@
     "watch": "*"
   },
   "dependencies": {
-    "async": "^1.5.2",
+    "async2": "^0.1.9",
+    "chalk": "^1.1.1",
     "cli": "^0.11.1",
+    "cli-table": "^0.3.1",
     "corbel-js": "^0.3.4",
+    "exists-file": "^1.0.0",
+    "gauge": "^1.2.7",
+    "glob": "^7.0.3",
+    "json-schema-generator": "^2.0.3",
     "jsonfile": "^2.2.3",
     "lodash": "^4.5.1",
     "mkdirp": "^0.5.1",
     "node-dir": "^0.1.11",
+    "progress": "^1.1.8",
     "prompt": "^0.2.14",
-    "raml-1-parser": "0.1.0-beta.6",
-    "raml2html": "git+https://github.com/corbel-platform/raml2html.git",
-    "raml2obj": "^2.2.0",
-    "ramllint": "^1.2.2",
     "recursive-readdir": "^1.3.0",
+    "request": "^2.69.0",
+    "rimraf": "^2.5.2",
+    "simple-spinner": "0.0.5",
     "yamljs": "^0.2.4"
   }
 }

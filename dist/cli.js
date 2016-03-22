@@ -24,6 +24,10 @@ var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
+var _simpleSpinner = require('simple-spinner');
+
+var _simpleSpinner2 = _interopRequireDefault(_simpleSpinner);
+
 var _login = require('./login');
 
 var _login2 = _interopRequireDefault(_login);
@@ -32,24 +36,20 @@ var _writeCredentials = require('./writeCredentials');
 
 var _writeCredentials2 = _interopRequireDefault(_writeCredentials);
 
-var _generateDoc = require('./generateDoc');
+var _status = require('./status');
 
-var _generateDoc2 = _interopRequireDefault(_generateDoc);
+var _status2 = _interopRequireDefault(_status);
 
-var _parseRaml = require('./parseRaml');
+var _publish = require('./publish');
 
-var _parseRaml2 = _interopRequireDefault(_parseRaml);
+var _publish2 = _interopRequireDefault(_publish);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 process.bin = process.title = 'composr-cli';
-
 // Lib modules
 
-//import findRaml from './findRaml'
 
-
-//utils
 /**
  * [getUserHome description]
  * @return {[type]} [description]
@@ -72,14 +72,13 @@ _prompt2.default.delimiter = '><'.green;
  * @return {[type]} [description]
  */
 var init = function init() {
+  _simpleSpinner2.default.start();
   initRC(function (err, result) {
-    if (err) console.log(err);
+    _simpleSpinner2.default.stop();
+    if (err) _cli2.default.error(err);
     locateComposrJson(function (err, result) {
-      if (err) console.log(err);
-      locateApiRaml(result, function (err, result) {
-        if (err) _cli2.default.error(err);
-        _cli2.default.ok('CompoSR ready to rock!');
-      });
+      if (err) _cli2.default.error(err);
+      _cli2.default.ok('CompoSR ready to rock!');
     });
   });
 };
@@ -87,48 +86,25 @@ var init = function init() {
  * PUBLISH
  */
 var publish = function publish() {
+  _simpleSpinner2.default.start();
   locateComposrJson(function (err, json) {
-    // call to parse raml
-    if (!err) return (0, _parseRaml2.default)(true, json, function (lintErrors, result) {
-      // List erros from linter
-      if (lintErrors && Array.isArray(lintErrors)) {
-        for (var i = 0; i < lintErrors.length; i++) {
-          _cli2.default.error(JSON.stringify(lintErrors[i], null, 2));
-        }
-      } else if (typeof lintErrors === 'string') {
-        _cli2.default.error(lintErrors);
-      } else {
-        _cli2.default.ok('created .composr');
-      }
-    });
-    return _cli2.default.error('Cannot locate composr.json, please generate new one with composr-cli --init');
-  });
-};
-/**
- * Generate Doc
- */
-var generateDoc = function generateDoc() {
-  // First of all, locate composr.json to get configuration
-  locateComposrJson(function (err, json) {
-    _cli2.default.ok('composr.js located');
-    // Locating api.raml file
-    if (!err) {
-      return locateApiRaml(json, function (err, result) {
-        if (err) return _cli2.default.error(err);
-        // Call to apiDoc to generate documentation
-        (0, _generateDoc2.default)(json, function (err, result) {
-          if (err) return _cli2.default.error(err);
-          _cli2.default.ok('API Documentation generated!');
-        });
-      });
-    }
-    _cli2.default.error('Cannot locate composr.json, please generate new one with composr-cli --init');
+    _simpleSpinner2.default.stop();
+    if (err) return _cli2.default.error(err);
+    (0, _publish2.default)(_simpleSpinner2.default, _cli2.default);
   });
 };
 
-var convertYaml = function convertYaml() {
-  var naviteObj = _yamljs2.default.load('api.raml');
-  console.log(JSON.stringify(naviteObj, null, 2));
+/**
+ * Get environments status
+ */
+var getStatus = function getStatus() {
+  locateComposrJson(function (err, obj) {
+    if (err) return _cli2.default.error(err);
+    var envStatus = obj.environments.map(function (url) {
+      return url + '/status';
+    });
+    (0, _status2.default)(envStatus, _simpleSpinner2.default);
+  });
 };
 
 /**
@@ -139,7 +115,6 @@ var convertYaml = function convertYaml() {
 var locateComposrJson = function locateComposrJson(next) {
   _jsonfile2.default.readFile(process.cwd() + '/composr.json', function (err, obj) {
     if (!err) {
-      _cli2.default.ok(':: Your Initialization is done ::');
       next(null, obj);
     } else {
       var schema = {
@@ -183,21 +158,6 @@ var locateComposrJson = function locateComposrJson(next) {
             message: 'License',
             default: 'MIT',
             type: 'string'
-          },
-          mock_middleware: {
-            message: 'Do you want activate mock middleware?',
-            default: false,
-            type: 'boolean'
-          },
-          validate_middleware: {
-            message: 'Do you want activate validate middleware?',
-            default: false,
-            type: 'boolean'
-          },
-          api_raml_location: {
-            message: 'What is the name of your api.raml?',
-            default: 'api.raml',
-            type: 'string'
           }
         }
       };
@@ -206,9 +166,9 @@ var locateComposrJson = function locateComposrJson(next) {
       _prompt2.default.get(schema, function (err, result) {
         if (err) _cli2.default.error(err);
         result.vd_dependencies = {};
-        result.doc_folder = 'doc/';
         result.domain = DOMAIN;
         result.id = DOMAIN + '!' + result.name;
+        result.environments = [];
         // creating composr.json
         _fs2.default.writeFile(process.cwd() + '/composr.json', JSON.stringify(result, null, 2), function (err) {
           if (err) return next(err, false);
@@ -226,25 +186,6 @@ var locateComposrJson = function locateComposrJson(next) {
 var initRC = function initRC(next) {
   if (!_fs2.default.existsSync(USER_HOME_ROOT)) _fs2.default.mkdirSync(USER_HOME_ROOT);
   locateRc(next);
-};
-
-/**
- * Locate Api Raml, if not exists create new one
- */
-var locateApiRaml = function locateApiRaml(config, next) {
-  _fs2.default.access(process.cwd() + '/API.raml', _fs2.default.R_OK | _fs2.default.W_OK, function (err) {
-    if (!err) return next();
-
-    var header = '#%RAML 0.8 \n' + 'title: ' + config.title + '\n' + 'version: ' + config.version + '\n' + 'baseUri: ' + config.baseUri + '\n' + 'mediaType: application/json';
-
-    // creating API.raml
-    _fs2.default.writeFile(process.cwd() + '/API.raml', header, function (err) {
-      if (err) {
-        return next(err, false);
-      }
-      return next(null, true);
-    });
-  });
 };
 
 /**
@@ -323,7 +264,7 @@ _cli2.default.parse({
   publish: ['p', 'Publish all your phrases to CompoSR'],
   update: ['u', 'Update at CompoSR.io your composr.json'],
   doc: ['d', 'Generate API documentation'],
-  yaml: ['y', 'Yaml Conversion']
+  status: ['s', 'Get Your CompoSR Project environments status']
 });
 
 _cli2.default.main(function (args, options) {
@@ -331,8 +272,7 @@ _cli2.default.main(function (args, options) {
   cli.debug(args)*/
   if (options.init) init();
   if (options.publish) publish();
-  if (options.doc) generateDoc();
-  if (options.yaml) convertYaml();
+  if (options.status) getStatus();
 });
 /**
  * uncaughtException handler

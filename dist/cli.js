@@ -1,8 +1,9 @@
+#!/usr/bin/env node
 'use strict';
 
-var _cli = require('cli');
+var _commandLineArgs = require('command-line-args');
 
-var _cli2 = _interopRequireDefault(_cli);
+var _commandLineArgs2 = _interopRequireDefault(_commandLineArgs);
 
 var _jsonfile = require('jsonfile');
 
@@ -44,12 +45,36 @@ var _publish = require('./publish');
 
 var _publish2 = _interopRequireDefault(_publish);
 
+var _print = require('./print');
+
+var _print2 = _interopRequireDefault(_print);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 process.bin = process.title = 'composr-cli';
 // Lib modules
 
 
+/**
+ * CLI INITIALIZATION
+ */
+var cli = (0, _commandLineArgs2.default)([{ name: 'publish', alias: 'p', type: Boolean }, { name: 'init', alias: 'i', type: Boolean }, { name: 'status', alias: 's', type: Boolean }, { name: 'help', alias: 'h', type: String, defaultOption: true }, { name: 'phrases', type: String, multiple: true }, { name: 'version', alias: 'v', type: String }, { name: 'environment', alias: 'e', type: String, multiple: true }, { name: 'verbose', alias: 'b', type: Boolean }]);
+
+var options = cli.parse();
+
+switch (options) {
+  case options.publish:
+    _print2.default.ok('Publicar!!');
+    break;
+  case options.init:
+    _print2.default.ok('Iniciar!!');
+    break;
+  case options.status:
+    _print2.default.ok('Pedir status!!');
+    break;
+  default:
+    console.log(cli.getUsage());
+}
 /**
  * [getUserHome description]
  * @return {[type]} [description]
@@ -75,10 +100,10 @@ var init = function init() {
   _simpleSpinner2.default.start();
   initRC(function (err, result) {
     _simpleSpinner2.default.stop();
-    if (err) _cli2.default.error(err);
+    if (err) _print2.default.error(err);
     locateComposrJson(function (err, result) {
-      if (err) _cli2.default.error(err);
-      _cli2.default.ok('CompoSR ready to rock!');
+      if (err) _print2.default.error(err);
+      _print2.default.ok('CompoSR ready to rock!');
     });
   });
 };
@@ -87,10 +112,13 @@ var init = function init() {
  */
 var publish = function publish() {
   _simpleSpinner2.default.start();
-  locateComposrJson(function (err, json) {
-    _simpleSpinner2.default.stop();
-    if (err) return _cli2.default.error(err);
-    (0, _publish2.default)(_simpleSpinner2.default, _cli2.default);
+  initRC(function (err, result) {
+    if (err) _print2.default.error(err);
+    locateComposrJson(function (err, config) {
+      if (err) return _print2.default.error(err);
+      config.ACCESS_TOKEN = ACCESS_TOKEN;
+      (0, _publish2.default)(config);
+    });
   });
 };
 
@@ -99,7 +127,7 @@ var publish = function publish() {
  */
 var getStatus = function getStatus() {
   locateComposrJson(function (err, obj) {
-    if (err) return _cli2.default.error(err);
+    if (err) return _print2.default.error(err);
     var envStatus = obj.environments.map(function (url) {
       return url + '/status';
     });
@@ -164,7 +192,7 @@ var locateComposrJson = function locateComposrJson(next) {
 
       _prompt2.default.start();
       _prompt2.default.get(schema, function (err, result) {
-        if (err) _cli2.default.error(err);
+        if (err) _print2.default.error(err);
         result.vd_dependencies = {};
         result.domain = DOMAIN;
         result.id = DOMAIN + '!' + result.name;
@@ -223,7 +251,7 @@ var locateRc = function locateRc(next) {
           return true;
         }
       }], function (err, result) {
-        if (err) return _cli2.default.error(err);
+        if (err) return _print2.default.error(err);
 
         var credentials = {
           clientId: result.clientId || null,
@@ -248,35 +276,22 @@ var locateRc = function locateRc(next) {
 var loginClient = function loginClient(credentials, next) {
   (0, _login2.default)(credentials, function (err, creds, domain) {
     if (err) {
-      _cli2.default.error(err);
+      _simpleSpinner2.default.stop();
+      _print2.default.error(err);
       return next(err, null);
     } else {
-      _cli2.default.ok('Login successful');
+      _simpleSpinner2.default.stop();
+      _print2.default.ok('Login successful');
       ACCESS_TOKEN = creds.access_token;
       DOMAIN = domain;
       return (0, _writeCredentials2.default)(USER_HOME_ROOT + '/.composrc', creds, next);
     }
   });
 };
-// CLI
-_cli2.default.parse({
-  init: ['i', 'Create a composr.json in your project.'],
-  publish: ['p', 'Publish all your phrases to CompoSR'],
-  update: ['u', 'Update at CompoSR.io your composr.json'],
-  doc: ['d', 'Generate API documentation'],
-  status: ['s', 'Get Your CompoSR Project environments status']
-});
 
-_cli2.default.main(function (args, options) {
-  /* cli.debug(JSON.stringify(options))
-  cli.debug(args)*/
-  if (options.init) init();
-  if (options.publish) publish();
-  if (options.status) getStatus();
-});
 /**
  * uncaughtException handler
  */
 process.on('uncaughtException', function (err) {
-  _cli2.default.error('Caught exception: ' + err);
+  _print2.default.error('Caught exception: ' + err);
 });

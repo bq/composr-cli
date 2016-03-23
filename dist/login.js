@@ -11,7 +11,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param  {[type]} credentials [description]
  * @return {[type]}             [description]
  */
-function login(credentials, next) {
+var login = function login(credentials, next) {
 
   var corbelDriver = _corbelJs2.default.getDriver(credentials);
 
@@ -22,6 +22,6 @@ function login(credentials, next) {
   }).catch(function (err) {
     return next(err, null);
   });
-}
+};
 
 module.exports = login;

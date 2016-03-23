@@ -1,6 +1,6 @@
 'use strict'
 import glob from 'glob'
-import cli from 'cli'
+import print from '../print'
 import async from 'async2'
 import Gauge from 'gauge'
 import fs from 'fs'
@@ -10,14 +10,14 @@ let gauge = new Gauge()
 /**
  * Locate model files
  */
-const buildSnippet = (next) => {
+const buildSnippet = (config, next) => {
   // progressBAr
   let progress = 0
   glob('**/*.snippet.js', null, (err, files) => {
-    if (err) return cli.error(err)
+    if (err) return print.error(err)
     let snippets = []
     let increment = (1 / files.length)
-    cli.ok(files.length + ' Snippets models founds')
+    print.ok(files.length + ' Snippets models founds')
     // bulk execution
     let buildSnippetExecList = []
     let snippetDirTmp = process.cwd() + '/.tmp/src/snippets/'
@@ -29,9 +29,9 @@ const buildSnippet = (next) => {
         snippetDir = filePath.replace(snippetDir[snippetDir.length - 1], '')
         let code = fs.readFileSync(filePath, 'utf8')
         let codehash = new Buffer(code).toString('base64')
-        let id = 'booqs:nubico:chile!' + snippetName
         let model = {
-          id: id,
+          name: snippetName,
+          version: config.version,
           codehash: codehash
         }
         snippets.push(model)
@@ -48,7 +48,7 @@ const executeBuild = (list, next) => {
   async.parallel(list, (err, results) => {
     gauge.hide()
     gauge.disable()
-    if (err) cli.error(err)
+    if (err) print.error(err)
     return next(err, results)
   })
 }
@@ -61,10 +61,10 @@ const createTmpDir = (next) => {
   })
 }
 
-const locateModels = (next) => {
+const locateModels = (config, next) => {
   createTmpDir((err, result) => {
-    if (err) cli.error(err)
-    buildSnippet((err, result) => {
+    if (err) print.error(err)
+    buildSnippet(config, (err, result) => {
       return next(err, result)
     })
   })

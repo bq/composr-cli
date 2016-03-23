@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 process.bin = process.title = 'composr-cli'
 
-import cli from 'cli'
+import commandLineArgs from 'command-line-args'
 import jsonfile from 'jsonfile'
 import fs from 'fs'
 import YAML from 'yamljs'
@@ -12,7 +13,37 @@ import login from './login'
 import writeCredentials from './writeCredentials'
 import status from './status'
 import Publish from './publish'
+import print from './print'
 
+/**
+ * CLI INITIALIZATION
+ */
+let cli = commandLineArgs([
+  { name: 'publish', alias: 'p', type: Boolean },
+  { name: 'init', alias: 'i', type: Boolean },
+  { name: 'status', alias: 's', type: Boolean },
+  { name: 'help', alias: 'h', type: String, defaultOption: true },
+  { name: 'phrases', type: String, multiple: true },
+  { name: 'version', alias: 'v', type: String },
+  { name: 'environment', alias: 'e', type: String, multiple: true },
+  { name: 'verbose', alias: 'b', type: Boolean }
+])
+
+let options = cli.parse()
+
+switch (options) {
+  case options.publish:
+    print.ok('Publicar!!')
+    break
+  case options.init:
+    print.ok('Iniciar!!')
+    break
+  case options.status:
+    print.ok('Pedir status!!')
+    break
+  default:
+    console.log(cli.getUsage())
+}
 /**
  * [getUserHome description]
  * @return {[type]} [description]
@@ -38,10 +69,10 @@ let init = () => {
   spinner.start()
   initRC((err, result) => {
     spinner.stop()
-    if (err) cli.error(err)
+    if (err) print.error(err)
     locateComposrJson((err, result) => {
-      if (err) cli.error(err)
-      cli.ok('CompoSR ready to rock!')
+      if (err) print.error(err)
+      print.ok('CompoSR ready to rock!')
     })
   })
 }
@@ -50,10 +81,13 @@ let init = () => {
    */
 let publish = () => {
   spinner.start()
-  locateComposrJson((err, json) => {
-    spinner.stop()
-    if (err) return cli.error(err)
-    Publish(spinner, cli)
+  initRC((err, result) => {
+    if (err) print.error(err)
+    locateComposrJson((err, config) => {
+      if (err) return print.error(err)
+      config.ACCESS_TOKEN = ACCESS_TOKEN
+      Publish(config)
+    })
   })
 }
 
@@ -62,7 +96,7 @@ let publish = () => {
  */
 let getStatus = () => {
   locateComposrJson((err, obj) => {
-    if (err) return cli.error(err)
+    if (err) return print.error(err)
     let envStatus = obj.environments.map(url => {
       return url + '/status'
     })
@@ -127,7 +161,7 @@ let locateComposrJson = next => {
 
       prompt.start()
       prompt.get(schema, (err, result) => {
-        if (err) cli.error(err)
+        if (err) print.error(err)
         result.vd_dependencies = {}
         result.domain = DOMAIN
         result.id = DOMAIN + '!' + result.name
@@ -186,7 +220,7 @@ let locateRc = next => {
           return true
         }
       }], (err, result) => {
-        if (err) return cli.error(err)
+        if (err) return print.error(err)
 
         let credentials = {
           clientId: result.clientId || null,
@@ -211,35 +245,22 @@ let locateRc = next => {
 let loginClient = (credentials, next) => {
   login(credentials, (err, creds, domain) => {
     if (err) {
-      cli.error(err)
+      spinner.stop()
+      print.error(err)
       return next(err, null)
     } else {
-      cli.ok('Login successful')
+      spinner.stop()
+      print.ok('Login successful')
       ACCESS_TOKEN = creds.access_token
       DOMAIN = domain
       return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
     }
   })
 }
-// CLI
-cli.parse({
-  init: ['i', 'Create a composr.json in your project.'],
-  publish: ['p', 'Publish all your phrases to CompoSR'],
-  update: ['u', 'Update at CompoSR.io your composr.json'],
-  doc: ['d', 'Generate API documentation'],
-  status: ['s', 'Get Your CompoSR Project environments status']
-})
 
-cli.main((args, options) => {
-  /* cli.debug(JSON.stringify(options))
-  cli.debug(args)*/
-  if (options.init) init()
-  if (options.publish) publish()
-  if (options.status) getStatus()
-})
 /**
  * uncaughtException handler
  */
 process.on('uncaughtException', err => {
-  cli.error('Caught exception: ' + err)
+  print.error('Caught exception: ' + err)
 })

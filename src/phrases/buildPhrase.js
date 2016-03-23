@@ -1,6 +1,6 @@
 'use strict'
 import glob from 'glob'
-import cli from 'cli'
+import print from '../print'
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 import modelGeneration from './modelGeneration'
@@ -9,7 +9,7 @@ import modelGeneration from './modelGeneration'
  * Build Phrase
  * ------------------------------
  */
-const buildPhrase = (modelFilePath, gauge, next) => {
+const buildPhrase = (config, modelFilePath, gauge, next) => {
   let phraseDir = modelFilePath.split('/')
   let phraseName = phraseDir[phraseDir.length - 1].replace('.model.json', '')
   phraseDir = modelFilePath.replace(phraseDir[phraseDir.length - 1], '')
@@ -20,7 +20,7 @@ const buildPhrase = (modelFilePath, gauge, next) => {
   // Create temporal folder
   mkdirp(phraseDirTmp, (err) => {
     if (err) {
-      cli.error(err)
+      print.error(err)
       return next(err, null)
     }
     // looking for code files related to model
@@ -28,7 +28,8 @@ const buildPhrase = (modelFilePath, gauge, next) => {
       if (err) return next(null, model)
       files.forEach((file) => {
         modelGeneration(file, phraseDir, phraseName, model, phraseDirTmp, (err, result) => {
-          if (err) cli.error(err)
+          if (err) print.error(err)
+          model.version = config.version
           let fileNameModel = phraseDirTmp + phraseName + '.model.json'
           fs.writeFileSync(fileNameModel, JSON.stringify(model, null, '\t'))
           // spinner.stop()

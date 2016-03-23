@@ -4,9 +4,9 @@ var _glob = require('glob');
 
 var _glob2 = _interopRequireDefault(_glob);
 
-var _cli = require('cli');
+var _print = require('../print');
 
-var _cli2 = _interopRequireDefault(_cli);
+var _print2 = _interopRequireDefault(_print);
 
 var _async = require('async2');
 
@@ -31,14 +31,14 @@ var gauge = new _gauge2.default();
 /**
  * Locate model files
  */
-var buildSnippet = function buildSnippet(next) {
+var buildSnippet = function buildSnippet(config, next) {
   // progressBAr
   var progress = 0;
   (0, _glob2.default)('**/*.snippet.js', null, function (err, files) {
-    if (err) return _cli2.default.error(err);
+    if (err) return _print2.default.error(err);
     var snippets = [];
     var increment = 1 / files.length;
-    _cli2.default.ok(files.length + ' Snippets models founds');
+    _print2.default.ok(files.length + ' Snippets models founds');
     // bulk execution
     var buildSnippetExecList = [];
     var snippetDirTmp = process.cwd() + '/.tmp/src/snippets/';
@@ -50,9 +50,9 @@ var buildSnippet = function buildSnippet(next) {
         snippetDir = filePath.replace(snippetDir[snippetDir.length - 1], '');
         var code = _fs2.default.readFileSync(filePath, 'utf8');
         var codehash = new Buffer(code).toString('base64');
-        var id = 'booqs:nubico:chile!' + snippetName;
         var model = {
-          id: id,
+          name: snippetName,
+          version: config.version,
           codehash: codehash
         };
         snippets.push(model);
@@ -69,7 +69,7 @@ var executeBuild = function executeBuild(list, next) {
   _async2.default.parallel(list, function (err, results) {
     gauge.hide();
     gauge.disable();
-    if (err) _cli2.default.error(err);
+    if (err) _print2.default.error(err);
     return next(err, results);
   });
 };
@@ -82,10 +82,10 @@ var createTmpDir = function createTmpDir(next) {
   });
 };
 
-var locateModels = function locateModels(next) {
+var locateModels = function locateModels(config, next) {
   createTmpDir(function (err, result) {
-    if (err) _cli2.default.error(err);
-    buildSnippet(function (err, result) {
+    if (err) _print2.default.error(err);
+    buildSnippet(config, function (err, result) {
       return next(err, result);
     });
   });

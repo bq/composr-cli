@@ -9,7 +9,7 @@ let gauge = new Gauge()
 /**
  * Locate model files
  */
-const locateModels = () => {
+const locateModels = (next) => {
   // progressBAr
   let progress = 0
   glob('**/*.model.json', null, (err, files) => {
@@ -43,13 +43,10 @@ const locateModels = () => {
       if (err) cli.error(err)
       if (phrasesCreated.length > 0) {
         phrasesCreated.forEach(result => {
-          if (phraseURLs.indexOf(result.model.url) !== -1) {
-            cli.error('Phrase duplicated [' + result.model.url + '] ' + result.filePath)
-          }
           phraseURLs.push(result.model.url)
         })
       }
-      return console.log(phraseURLs)
+      return next(err, results)
     })
   })
 }

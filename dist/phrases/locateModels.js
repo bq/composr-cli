@@ -27,7 +27,7 @@ var gauge = new _gauge2.default();
 /**
  * Locate model files
  */
-var locateModels = function locateModels() {
+var locateModels = function locateModels(next) {
   // progressBAr
   var progress = 0;
   (0, _glob2.default)('**/*.model.json', null, function (err, files) {
@@ -37,6 +37,7 @@ var locateModels = function locateModels() {
     _cli2.default.ok(files.length + ' Phrases models founds');
     // bulk execution
     var buildPhrasesExecList = [];
+    var phrasesCreated = [];
     files.forEach(function (filePath) {
       progress += increment;
       gauge.show('Building Phrases → ' + filePath, progress);
@@ -46,25 +47,24 @@ var locateModels = function locateModels() {
             return callback(err);
           } else {
             var response = { model: model, filePath: filePath };
+            phrasesCreated.push(response);
             return callback(null, response);
           }
         });
       });
     });
 
+    gauge.hide();
+    gauge.disable();
+
     _async2.default.parallel(buildPhrasesExecList, function (err, results) {
       if (err) _cli2.default.error(err);
-      if (results.length > 0) {
-        results.forEach(function (result) {
-          if (phraseURLs.indexOf(result.model.url) !== -1) {
-            _cli2.default.error('Phrase duplicated [' + result.model.url + '] ' + result.filePath);
-          }
+      if (phrasesCreated.length > 0) {
+        phrasesCreated.forEach(function (result) {
           phraseURLs.push(result.model.url);
         });
       }
-      gauge.hide();
-      gauge.disable();
-      return console.log(phraseURLs);
+      return next(err, results);
     });
   });
 };

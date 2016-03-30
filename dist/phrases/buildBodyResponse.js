@@ -21,7 +21,7 @@ var buildBodyResponse = function buildBodyResponse(phraseDir, phraseDirTmp, verb
       // requestFileName example:
       // 'src/phraseName/phraseName.get.body.json'
       var requestExample = JSON.parse(file);
-      var schema = void 0;
+      var schema = undefined;
       try {
         schema = _fs2.default.readFileSync(process.cwd() + phraseDir + phraseName + '.' + verb + '.schema.json');
       } catch (e) {

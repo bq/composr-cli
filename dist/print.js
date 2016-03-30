@@ -8,13 +8,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var print = {};
 print.error = function (text) {
-  _chalk2.default.white.bgRed.bold('Error: ' + _chalk2.default.white(text));
+  console.log(_chalk2.default.white.bgRed.bold('Error: ') + _chalk2.default.white(text));
 };
 print.ok = function (text) {
-  _chalk2.default.white.bgGreen.bold('OK:' + _chalk2.default.white(text));
+  console.log(_chalk2.default.white.bgGreen.bold('OK:') + _chalk2.default.white(text));
 };
 print.info = function (text) {
-  _chalk2.default.white.bgYellow.bold('INFO:' + _chalk2.default.white(text));
+  console.log(_chalk2.default.white.bgYellow.bold('INFO:') + _chalk2.default.white(text));
 };
 
 module.exports = print;

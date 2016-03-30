@@ -1,4 +1,5 @@
 'use strict';
+// Phrase Generator
 
 var _fs = require('fs');
 
@@ -12,56 +13,56 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _async = require('async');
+var _async = require('async2');
 
 var _async2 = _interopRequireDefault(_async);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function makePath(path) {
+var makePath = function makePath(path) {
   _mkdirp2.default.sync(path);
-}
+};
 
 var exampleDocumentationForVerb = {
-  "description": "VERB documentation",
-  "securedBy": ["oauth_2_0"],
-  "headers": {
-    "Example-Header": {
-      "displayName": "Example header",
-      "description": "A generated example"
+  'description': 'VERB documentation',
+  'securedBy': ['oauth_2_0'],
+  'headers': {
+    'Example-Header': {
+      'displayName': 'Example header',
+      'description': 'A generated example'
     }
   },
-  "responses": {
-    "200": {
-      "description": "Valid Response"
+  'responses': {
+    '200': {
+      'description': 'Valid Response'
     },
-    "401": {
-      "description": "Not authorized"
+    '401': {
+      'description': 'Not authorized'
     },
-    "400": {
-      "description": "Bad request"
+    '400': {
+      'description': 'Bad request'
     },
-    "500": {
-      "description": "Internal Server Error"
+    '500': {
+      'description': 'Internal Server Error'
     }
   },
-  "queryParameters": {
-    "name": {
-      "description": "Example query parameter",
-      "type": "string",
-      "example": "?name=Demo"
+  'queryParameters': {
+    'name': {
+      'description': 'Example query parameter',
+      'type': 'string',
+      'example': '?name=Demo'
     },
-    "number": {
-      "default": 10,
-      "description": "Example query parameter",
-      "type": "number",
-      "example": "?number=30"
+    'number': {
+      'default': 10,
+      'description': 'Example query parameter',
+      'type': 'number',
+      'example': '?number=30'
     }
   }
 };
 
-function generatePhrase(phraseName, phraseUrl, verbs, rootFolder, next) {
-  //Generate the phrase model
+var generatePhrase = function generatePhrase(phraseName, phraseUrl, verbs, rootFolder, next) {
+  // Generate the phrase model
   var thePhrase = {
     url: phraseUrl
   };
@@ -76,19 +77,19 @@ function generatePhrase(phraseName, phraseUrl, verbs, rootFolder, next) {
 
   thePhrase = JSON.stringify(thePhrase, null, 2);
 
-  //File names
+  // File names
   var sanitizedName = _lodash2.default.camelCase(phraseName);
   var phraseModelFileName = sanitizedName + '.model.json';
   var phraseCodeFileNames = verbs.map(function (verb) {
     return sanitizedName + '.' + verb + '.code.js';
   });
 
-  //Create the phrase folder
-  rootFolder = rootFolder ? rootFolder : __dirname;
+  // Create the phrase folder
+  rootFolder = rootFolder ? rootFolder : process.cwd();
   var phraseFolderDir = rootFolder + '/' + sanitizedName;
   makePath(phraseFolderDir);
 
-  //Write all the files
+  // Write all the files
   var parallelWrites = [function (cb) {
     writeFile(phraseFolderDir + '/' + phraseModelFileName, thePhrase, cb);
   }];
@@ -102,9 +103,9 @@ function generatePhrase(phraseName, phraseUrl, verbs, rootFolder, next) {
   _async2.default.parallel(parallelWrites, function (err, results) {
     next(err, results);
   });
-}
+};
 
-function writeFile(path, body, next) {
+var writeFile = function writeFile(path, body, next) {
   _fs2.default.writeFile(path, body, function (err) {
     if (err) {
       return next(err, null);
@@ -112,6 +113,6 @@ function writeFile(path, body, next) {
       return next(null, true);
     }
   });
-}
+};
 
 module.exports = generatePhrase;

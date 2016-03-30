@@ -30,7 +30,7 @@ var buildResponses = function buildResponses(phraseDir, phraseDirTmp, verb, phra
 
         var responseExample = _fs2.default.readFileSync(process.cwd() + '/' + responseFileName, 'utf8');
         responseExample = JSON.parse(responseExample);
-        var schema = undefined;
+        var schema = void 0;
         try {
           schema = _fs2.default.readFileSync(process.cwd() + '/' + responseFileName.replace('.json', '.schema.json'));
         } catch (e) {

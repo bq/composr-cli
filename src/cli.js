@@ -5,6 +5,7 @@ import commandLineArgs from 'command-line-args'
 import jsonfile from 'jsonfile'
 import fs from 'fs'
 import YAML from 'yamljs'
+import inquirer from 'inquirer'
 import prompt from 'prompt'
 import path from 'path'
 import spinner from 'simple-spinner'
@@ -26,7 +27,8 @@ let cli = commandLineArgs([
   { name: 'phrases', type: String, multiple: true },
   { name: 'version', alias: 'v', type: String },
   { name: 'environment', alias: 'e', type: String, multiple: true },
-  { name: 'verbose', alias: 'b', type: Boolean }
+  { name: 'verbose', alias: 'b', type: Boolean },
+  { name: 'generatePhrase', alias: 'g', type: Boolean}
 ])
 
 let options = cli.parse()
@@ -40,6 +42,9 @@ switch (options) {
     break
   case options.status:
     print.ok('Pedir status!!')
+    break
+  case options.generatePhrase:
+    generatePhrase()
     break
   default:
     console.log(cli.getUsage())
@@ -76,9 +81,10 @@ let init = () => {
     })
   })
 }
-  /**
-   * PUBLISH
-   */
+
+/**
+ * PUBLISH
+ */
 let publish = () => {
   spinner.start()
   initRC((err, result) => {
@@ -89,6 +95,46 @@ let publish = () => {
       Publish(config)
     })
   })
+}
+
+/**
+ * Generate Phrase
+ */
+let generatePhrase = () => {
+  spinner.start()
+
+  inquirer.prompt([{
+    type: 'input',
+    name: 'name',
+    message: 'Which name would you like for your endpoint?',
+    default: 'My Endpoint'
+  },{
+    type: 'input',
+    name: 'url',
+    message: 'What is the URL of the endpoint?',
+    default: ''
+  },{
+      type: 'checkbox',
+      name: 'verbs',
+      message: 'Which verbs will respond to?',
+      choices: ['get', 'post', 'put', 'delete'],
+      default: 1
+    }], function(answers) {
+      console.log(answers)
+      if (!answers['name']){
+        return print.error('Please choose a phrase name')
+      }
+
+      if (!answers['url']){
+        return print.error('Please choose a phrase url')
+      }
+
+      if (!answers['verbs']){
+        return print.error('Please select any verb')
+      }
+      //phraseGenerator(answers['name'], answers['url'], answers['verbs'])
+  
+  });
 }
 
 /**

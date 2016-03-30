@@ -6,8 +6,8 @@ import rimraf from 'rimraf'
 /**
  * Publish Module Entry
  */
-const Publish = (config) => {
-  // Execution all tasks in series
+const Publish = (config, options) => {
+  // Execution all tasks in serie
   print.ok('Loading building...')
   // Clean TMP Directory
   rimraf(process.cwd() + '/.tmp', (err) => {

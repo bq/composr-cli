@@ -53,35 +53,16 @@ var _print = require('./print');
 
 var _print2 = _interopRequireDefault(_print);
 
+var _phrase = require('./generators/phrase');
+
+var _phrase2 = _interopRequireDefault(_phrase);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 process.bin = process.title = 'composr-cli';
 // Lib modules
 
 
-/**
- * CLI INITIALIZATION
- */
-var cli = (0, _commandLineArgs2.default)([{ name: 'publish', alias: 'p', type: Boolean }, { name: 'init', alias: 'i', type: Boolean }, { name: 'status', alias: 's', type: Boolean }, { name: 'help', alias: 'h', type: String, defaultOption: true }, { name: 'phrases', type: String, multiple: true }, { name: 'version', alias: 'v', type: String }, { name: 'environment', alias: 'e', type: String, multiple: true }, { name: 'verbose', alias: 'b', type: Boolean }, { name: 'generatePhrase', alias: 'g', type: Boolean }]);
-
-var options = cli.parse();
-console.log(options);
-switch (options) {
-  case options.publish:
-    _print2.default.ok('Publicar!!');
-    break;
-  case options.init:
-    _print2.default.ok('Iniciar!!');
-    break;
-  case options.status:
-    _print2.default.ok('Pedir status!!');
-    break;
-  case options.generatePhrase:
-    generatePhrase();
-    break;
-  default:
-    console.log(cli.getUsage());
-}
 /**
  * [getUserHome description]
  * @return {[type]} [description]
@@ -103,7 +84,7 @@ _prompt2.default.delimiter = '><'.green;
  * [init description]
  * @return {[type]} [description]
  */
-var init = function init() {
+var init = function init(options) {
   _simpleSpinner2.default.start();
   initRC(function (err, result) {
     _simpleSpinner2.default.stop();
@@ -114,18 +95,17 @@ var init = function init() {
     });
   });
 };
-
 /**
  * PUBLISH
  */
-var publish = function publish() {
+var publish = function publish(options) {
   _simpleSpinner2.default.start();
   initRC(function (err, result) {
     if (err) _print2.default.error(err);
     locateComposrJson(function (err, config) {
       if (err) return _print2.default.error(err);
       config.ACCESS_TOKEN = ACCESS_TOKEN;
-      (0, _publish2.default)(config);
+      (0, _publish2.default)(config, options);
     });
   });
 };
@@ -133,9 +113,9 @@ var publish = function publish() {
 /**
  * Generate Phrase
  */
-var generatePhrase = function generatePhrase() {
-  _simpleSpinner2.default.start();
+// phraseGenerator(answers['name'], answers['url'], answers['verbs'])
 
+var generatePhrase = function generatePhrase() {
   _inquirer2.default.prompt([{
     type: 'input',
     name: 'name',
@@ -157,22 +137,21 @@ var generatePhrase = function generatePhrase() {
     if (!answers['name']) {
       return _print2.default.error('Please choose a phrase name');
     }
-
     if (!answers['url']) {
       return _print2.default.error('Please choose a phrase url');
     }
-
     if (!answers['verbs']) {
       return _print2.default.error('Please select any verb');
     }
-    //phraseGenerator(answers['name'], answers['url'], answers['verbs'])
+    (0, _phrase2.default)(answers['name'], answers['url'], answers['verbs'], null, function (err) {
+      if (err) _print2.default.error(err);
+    });
   });
 };
-
 /**
  * Get environments status
  */
-var getStatus = function getStatus() {
+var getStatus = function getStatus(options) {
   locateComposrJson(function (err, obj) {
     if (err) return _print2.default.error(err);
     var envStatus = obj.environments.map(function (url) {
@@ -335,6 +314,74 @@ var loginClient = function loginClient(credentials, next) {
     }
   });
 };
+/**
+ * ------------------
+ * CLI INITIALIZATION
+ * ------------------
+ */
+var cli = (0, _commandLineArgs2.default)([{
+  name: 'publish',
+  alias: 'p',
+  type: Boolean
+}, {
+  name: 'init',
+  alias: 'i',
+  type: Boolean
+}, {
+  name: 'status',
+  alias: 's',
+  type: Boolean
+}, {
+  name: 'generate',
+  alias: 'g',
+  type: Boolean,
+  defaultOption: false
+}, {
+  name: 'help',
+  alias: 'h',
+  type: String,
+  defaultOption: true
+}, {
+  name: 'phrases',
+  type: String,
+  multiple: true
+}, {
+  name: 'version',
+  alias: 'v',
+  type: String
+}, {
+  name: 'environment',
+  alias: 'e',
+  type: String,
+  multiple: true
+}, {
+  name: 'verbose',
+  alias: 'b',
+  type: Boolean
+}]);
+
+var options = cli.parse();
+
+if (options.init === true) {
+  _print2.default.ok('Initialization ...');
+  init(options);
+}
+if (options.publish === true) {
+  _print2.default.ok('Publish Loading ...');
+  publish(options);
+}
+if (options.status === true) {
+  _print2.default.ok('Loading environments status ...');
+  getStatus(options);
+}
+if (options.generate === true) {
+  _print2.default.ok('Generating X ...');
+  generatePhrase();
+}
+
+if (options.help === true) {
+  cli.getUsage();
+}
 
 /**
  * uncaughtException handler

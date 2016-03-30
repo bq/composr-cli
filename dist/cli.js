@@ -17,6 +17,10 @@ var _yamljs = require('yamljs');
 
 var _yamljs2 = _interopRequireDefault(_yamljs);
 
+var _inquirer = require('inquirer');
+
+var _inquirer2 = _interopRequireDefault(_inquirer);
+
 var _prompt = require('prompt');
 
 var _prompt2 = _interopRequireDefault(_prompt);
@@ -58,10 +62,10 @@ process.bin = process.title = 'composr-cli';
 /**
  * CLI INITIALIZATION
  */
-var cli = (0, _commandLineArgs2.default)([{ name: 'publish', alias: 'p', type: Boolean }, { name: 'init', alias: 'i', type: Boolean }, { name: 'status', alias: 's', type: Boolean }, { name: 'help', alias: 'h', type: String, defaultOption: true }, { name: 'phrases', type: String, multiple: true }, { name: 'version', alias: 'v', type: String }, { name: 'environment', alias: 'e', type: String, multiple: true }, { name: 'verbose', alias: 'b', type: Boolean }]);
+var cli = (0, _commandLineArgs2.default)([{ name: 'publish', alias: 'p', type: Boolean }, { name: 'init', alias: 'i', type: Boolean }, { name: 'status', alias: 's', type: Boolean }, { name: 'help', alias: 'h', type: String, defaultOption: true }, { name: 'phrases', type: String, multiple: true }, { name: 'version', alias: 'v', type: String }, { name: 'environment', alias: 'e', type: String, multiple: true }, { name: 'verbose', alias: 'b', type: Boolean }, { name: 'generatePhrase', alias: 'g', type: Boolean }]);
 
 var options = cli.parse();
-
+console.log(options);
 switch (options) {
   case options.publish:
     _print2.default.ok('Publicar!!');
@@ -71,6 +75,9 @@ switch (options) {
     break;
   case options.status:
     _print2.default.ok('Pedir status!!');
+    break;
+  case options.generatePhrase:
+    generatePhrase();
     break;
   default:
     console.log(cli.getUsage());
@@ -107,6 +114,7 @@ var init = function init() {
     });
   });
 };
+
 /**
  * PUBLISH
  */
@@ -119,6 +127,45 @@ var publish = function publish() {
       config.ACCESS_TOKEN = ACCESS_TOKEN;
       (0, _publish2.default)(config);
     });
+  });
+};
+
+/**
+ * Generate Phrase
+ */
+var generatePhrase = function generatePhrase() {
+  _simpleSpinner2.default.start();
+
+  _inquirer2.default.prompt([{
+    type: 'input',
+    name: 'name',
+    message: 'Which name would you like for your endpoint?',
+    default: 'My Endpoint'
+  }, {
+    type: 'input',
+    name: 'url',
+    message: 'What is the URL of the endpoint?',
+    default: ''
+  }, {
+    type: 'checkbox',
+    name: 'verbs',
+    message: 'Which verbs will respond to?',
+    choices: ['get', 'post', 'put', 'delete'],
+    default: 1
+  }], function (answers) {
+    console.log(answers);
+    if (!answers['name']) {
+      return _print2.default.error('Please choose a phrase name');
+    }
+
+    if (!answers['url']) {
+      return _print2.default.error('Please choose a phrase url');
+    }
+
+    if (!answers['verbs']) {
+      return _print2.default.error('Please select any verb');
+    }
+    //phraseGenerator(answers['name'], answers['url'], answers['verbs'])
   });
 };
 

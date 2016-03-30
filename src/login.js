@@ -6,7 +6,7 @@ import corbel from 'corbel-js'
  * @param  {[type]} credentials [description]
  * @return {[type]}             [description]
  */
-function login(credentials, next) {
+let login = (credentials, next) => {
 
   const corbelDriver = corbel.getDriver(credentials)
 

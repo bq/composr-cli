@@ -4,9 +4,9 @@ var _glob = require('glob');
 
 var _glob2 = _interopRequireDefault(_glob);
 
-var _cli = require('cli');
+var _print = require('../print');
 
-var _cli2 = _interopRequireDefault(_cli);
+var _print2 = _interopRequireDefault(_print);
 
 var _fs = require('fs');
 
@@ -27,7 +27,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * Build Phrase
  * ------------------------------
  */
-var buildPhrase = function buildPhrase(modelFilePath, gauge, next) {
+var buildPhrase = function buildPhrase(config, modelFilePath, gauge, next) {
   var phraseDir = modelFilePath.split('/');
   var phraseName = phraseDir[phraseDir.length - 1].replace('.model.json', '');
   phraseDir = modelFilePath.replace(phraseDir[phraseDir.length - 1], '');
@@ -38,7 +38,7 @@ var buildPhrase = function buildPhrase(modelFilePath, gauge, next) {
   // Create temporal folder
   (0, _mkdirp2.default)(phraseDirTmp, function (err) {
     if (err) {
-      _cli2.default.error(err);
+      _print2.default.error(err);
       return next(err, null);
     }
     // looking for code files related to model
@@ -46,7 +46,8 @@ var buildPhrase = function buildPhrase(modelFilePath, gauge, next) {
       if (err) return next(null, model);
       files.forEach(function (file) {
         (0, _modelGeneration2.default)(file, phraseDir, phraseName, model, phraseDirTmp, function (err, result) {
-          if (err) _cli2.default.error(err);
+          if (err) _print2.default.error(err);
+          model.version = config.version;
           var fileNameModel = phraseDirTmp + phraseName + '.model.json';
           _fs2.default.writeFileSync(fileNameModel, JSON.stringify(model, null, '\t'));
           // spinner.stop()

@@ -1,15 +1,26 @@
 'use strict'
-import cli from 'cli'
-import locateModels from './phrases/locateModels'
+import print from './print'
+import buildPhrases from './phrases/locateModels'
+import buildSnippet from './snippets/buildSnippets'
 import rimraf from 'rimraf'
 /**
  * Publish Module Entry
  */
-const Publish = () => {
-  cli.ok('Loading building...')
+const Publish = (config) => {
+  // Execution all tasks in series
+  print.ok('Loading building...')
+  // Clean TMP Directory
   rimraf(process.cwd() + '/.tmp', (err) => {
-    if (err) return cli.error(err)
-    locateModels()
+    if (err) return print.error(err)
+    // Build Phrase tasks
+    buildPhrases(config, (err, result) => {
+      if (err) print.error(err)
+      // Build Snippets tasks
+      buildSnippet(config, (err, result) => {
+        if (err) return print.error(err)
+        print.ok('All Phrases and snippets builts')
+      })
+    })
   })
 }
 

@@ -1,6 +1,6 @@
 'use strict'
 import glob from 'glob'
-import cli from 'cli'
+import print from '../print'
 import async from 'async2'
 import buildPhrase from './buildPhrase'
 import Gauge from 'gauge'
@@ -9,14 +9,14 @@ let gauge = new Gauge()
 /**
  * Locate model files
  */
-const locateModels = () => {
+const locateModels = (config, next) => {
   // progressBAr
   let progress = 0
   glob('**/*.model.json', null, (err, files) => {
-    if (err) return cli.error(err)
+    if (err) return print.error(err)
     let phraseURLs = []
     let increment = (1 / files.length)
-    cli.ok(files.length + ' Phrases models founds')
+    print.ok(files.length + ' Phrases models founds')
     // bulk execution
     let buildPhrasesExecList = []
     let phrasesCreated = []
@@ -24,7 +24,7 @@ const locateModels = () => {
       progress += increment
       gauge.show('Building Phrases → ' + filePath, progress)
       buildPhrasesExecList.push((callback) => {
-        buildPhrase(filePath, gauge, (err, model) => {
+        buildPhrase(config, filePath, gauge, (err, model) => {
           if (err) {
             return callback(err)
           } else {
@@ -40,16 +40,13 @@ const locateModels = () => {
     gauge.disable()
 
     async.parallel(buildPhrasesExecList, (err, results) => {
-      if (err) cli.error(err)
+      if (err) print.error(err)
       if (phrasesCreated.length > 0) {
         phrasesCreated.forEach(result => {
-          if (phraseURLs.indexOf(result.model.url) !== -1) {
-            cli.error('Phrase duplicated [' + result.model.url + '] ' + result.filePath)
-          }
           phraseURLs.push(result.model.url)
         })
       }
-      return console.log(phraseURLs)
+      return next(err, results)
     })
   })
 }

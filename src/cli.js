@@ -1,10 +1,12 @@
 #!/usr/bin/env node
+
 process.bin = process.title = 'composr-cli'
 
 import commandLineArgs from 'command-line-args'
 import jsonfile from 'jsonfile'
 import fs from 'fs'
 import YAML from 'yamljs'
+import inquirer from 'inquirer'
 import prompt from 'prompt'
 import path from 'path'
 import spinner from 'simple-spinner'
@@ -14,7 +16,7 @@ import writeCredentials from './writeCredentials'
 import status from './status'
 import Publish from './publish'
 import print from './print'
-
+import genPhrase from './generators/phrase'
 
 /**
  * [getUserHome description]
@@ -23,9 +25,9 @@ import print from './print'
 let getUserHome = () => {
   return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
 }
-/**
- * Credentials
- */
+  /**
+   * Credentials
+   */
 let ACCESS_TOKEN = null
 let DOMAIN = null
   // CONST
@@ -38,16 +40,16 @@ prompt.delimiter = '><'.green
  * @return {[type]} [description]
  */
 let init = (options) => {
-  spinner.start()
-  initRC((err, result) => {
-    spinner.stop()
-    if (err) print.error(err)
-    locateComposrJson((err, result) => {
+    spinner.start()
+    initRC((err, result) => {
+      spinner.stop()
       if (err) print.error(err)
-      print.ok('CompoSR ready to rock!')
+      locateComposrJson((err, result) => {
+        if (err) print.error(err)
+        print.ok('CompoSR ready to rock!')
+      })
     })
-  })
-}
+  }
   /**
    * PUBLISH
    */
@@ -63,6 +65,44 @@ let publish = (options) => {
   })
 }
 
+/**
+ * Generate Phrase
+ */
+ // phraseGenerator(answers['name'], answers['url'], answers['verbs'])
+
+let generatePhrase = () => {
+  inquirer.prompt([{
+    type: 'input',
+    name: 'name',
+    message: 'Which name would you like for your endpoint?',
+    default: 'My Endpoint'
+  }, {
+    type: 'input',
+    name: 'url',
+    message: 'What is the URL of the endpoint?',
+    default: ''
+  }, {
+    type: 'checkbox',
+    name: 'verbs',
+    message: 'Which verbs will respond to?',
+    choices: ['get', 'post', 'put', 'delete'],
+    default: 1
+  }], (answers) => {
+    console.log(answers)
+    if (!answers['name']) {
+      return print.error('Please choose a phrase name')
+    }
+    if (!answers['url']) {
+      return print.error('Please choose a phrase url')
+    }
+    if (!answers['verbs']) {
+      return print.error('Please select any verb')
+    }
+    genPhrase(answers['name'], answers['url'], answers['verbs'], null, (err) => {
+      if (err) print.error(err)
+    })
+  })
+}
 /**
  * Get environments status
  */
@@ -229,21 +269,51 @@ let loginClient = (credentials, next) => {
     }
   })
 }
-/**
-* ------------------
-* CLI INITIALIZATION
-* ------------------
-*/
-let cli = commandLineArgs([
-  { name: 'publish', alias: 'p', type: Boolean },
-  { name: 'init', alias: 'i', type: Boolean },
-  { name: 'status', alias: 's', type: Boolean },
-  { name: 'help', alias: 'h', type: String, defaultOption: true },
-  { name: 'phrases', type: String, multiple: true },
-  { name: 'version', alias: 'v', type: String },
-  { name: 'environment', alias: 'e', type: String, multiple: true },
-  { name: 'verbose', alias: 'b', type: Boolean }
-])
+  /**
+   * ------------------
+   * CLI INITIALIZATION
+   * ------------------
+   */
+let cli = commandLineArgs([{
+  name: 'publish',
+  alias: 'p',
+  type: Boolean
+}, {
+  name: 'init',
+  alias: 'i',
+  type: Boolean
+}, {
+  name: 'status',
+  alias: 's',
+  type: Boolean
+}, {
+  name: 'generate',
+  alias: 'g',
+  type: Boolean,
+  defaultOption: false
+}, {
+  name: 'help',
+  alias: 'h',
+  type: String,
+  defaultOption: true
+}, {
+  name: 'phrases',
+  type: String,
+  multiple: true
+}, {
+  name: 'version',
+  alias: 'v',
+  type: String
+}, {
+  name: 'environment',
+  alias: 'e',
+  type: String,
+  multiple: true
+}, {
+  name: 'verbose',
+  alias: 'b',
+  type: Boolean
+}])
 
 let options = cli.parse()
 
@@ -259,6 +329,11 @@ if (options.status === true) {
   print.ok('Loading environments status ...')
   getStatus(options)
 }
+if (options.generate === true) {
+  print.ok('Generating X ...')
+  generatePhrase()
+}
+
 if (options.help === true) {
   cli.getUsage()
 }

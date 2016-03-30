@@ -21,8 +21,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 /**
  * Publish Module Entry
  */
-var Publish = function Publish(config) {
-  // Execution all tasks in series
+var Publish = function Publish(config, options) {
+  // Execution all tasks in serie
   _print2.default.ok('Loading building...');
   // Clean TMP Directory
   (0, _rimraf2.default)(process.cwd() + '/.tmp', function (err) {

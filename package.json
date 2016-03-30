@@ -4,7 +4,7 @@
   "description": "CompoSR | Command Line Interface",
   "main": "bin/cli.js",
   "bin": {
-    "composr-cli": "bin/composr-cli"
+    "composr": "bin/composr"
   },
   "preferGlobal": "true",
   "files": [

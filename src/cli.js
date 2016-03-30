@@ -15,35 +15,7 @@ import status from './status'
 import Publish from './publish'
 import print from './print'
 
-/**
- * CLI INITIALIZATION
- */
-let cli = commandLineArgs([
-  { name: 'publish', alias: 'p', type: Boolean },
-  { name: 'init', alias: 'i', type: Boolean },
-  { name: 'status', alias: 's', type: Boolean },
-  { name: 'help', alias: 'h', type: String, defaultOption: true },
-  { name: 'phrases', type: String, multiple: true },
-  { name: 'version', alias: 'v', type: String },
-  { name: 'environment', alias: 'e', type: String, multiple: true },
-  { name: 'verbose', alias: 'b', type: Boolean }
-])
 
-let options = cli.parse()
-
-switch (options) {
-  case options.publish:
-    print.ok('Publicar!!')
-    break
-  case options.init:
-    print.ok('Iniciar!!')
-    break
-  case options.status:
-    print.ok('Pedir status!!')
-    break
-  default:
-    console.log(cli.getUsage())
-}
 /**
  * [getUserHome description]
  * @return {[type]} [description]
@@ -65,7 +37,7 @@ prompt.delimiter = '><'.green
  * [init description]
  * @return {[type]} [description]
  */
-let init = () => {
+let init = (options) => {
   spinner.start()
   initRC((err, result) => {
     spinner.stop()
@@ -79,14 +51,14 @@ let init = () => {
   /**
    * PUBLISH
    */
-let publish = () => {
+let publish = (options) => {
   spinner.start()
   initRC((err, result) => {
     if (err) print.error(err)
     locateComposrJson((err, config) => {
       if (err) return print.error(err)
       config.ACCESS_TOKEN = ACCESS_TOKEN
-      Publish(config)
+      Publish(config, options)
     })
   })
 }
@@ -94,7 +66,7 @@ let publish = () => {
 /**
  * Get environments status
  */
-let getStatus = () => {
+let getStatus = (options) => {
   locateComposrJson((err, obj) => {
     if (err) return print.error(err)
     let envStatus = obj.environments.map(url => {
@@ -256,6 +228,39 @@ let loginClient = (credentials, next) => {
       return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
     }
   })
+}
+/**
+* ------------------
+* CLI INITIALIZATION
+* ------------------
+*/
+let cli = commandLineArgs([
+  { name: 'publish', alias: 'p', type: Boolean },
+  { name: 'init', alias: 'i', type: Boolean },
+  { name: 'status', alias: 's', type: Boolean },
+  { name: 'help', alias: 'h', type: String, defaultOption: true },
+  { name: 'phrases', type: String, multiple: true },
+  { name: 'version', alias: 'v', type: String },
+  { name: 'environment', alias: 'e', type: String, multiple: true },
+  { name: 'verbose', alias: 'b', type: Boolean }
+])
+
+let options = cli.parse()
+
+if (options.init === true) {
+  print.ok('Initialization ...')
+  init(options)
+}
+if (options.publish === true) {
+  print.ok('Publish Loading ...')
+  publish(options)
+}
+if (options.status === true) {
+  print.ok('Loading environments status ...')
+  getStatus(options)
+}
+if (options.help === true) {
+  cli.getUsage()
 }
 
 /**

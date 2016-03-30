@@ -56,26 +56,6 @@ process.bin = process.title = 'composr-cli';
 
 
 /**
- * CLI INITIALIZATION
- */
-var cli = (0, _commandLineArgs2.default)([{ name: 'publish', alias: 'p', type: Boolean }, { name: 'init', alias: 'i', type: Boolean }, { name: 'status', alias: 's', type: Boolean }, { name: 'help', alias: 'h', type: String, defaultOption: true }, { name: 'phrases', type: String, multiple: true }, { name: 'version', alias: 'v', type: String }, { name: 'environment', alias: 'e', type: String, multiple: true }, { name: 'verbose', alias: 'b', type: Boolean }]);
-
-var options = cli.parse();
-
-switch (options) {
-  case options.publish:
-    _print2.default.ok('Publicar!!');
-    break;
-  case options.init:
-    _print2.default.ok('Iniciar!!');
-    break;
-  case options.status:
-    _print2.default.ok('Pedir status!!');
-    break;
-  default:
-    console.log(cli.getUsage());
-}
-/**
  * [getUserHome description]
  * @return {[type]} [description]
  */
@@ -96,7 +76,7 @@ _prompt2.default.delimiter = '><'.green;
  * [init description]
  * @return {[type]} [description]
  */
-var init = function init() {
+var init = function init(options) {
   _simpleSpinner2.default.start();
   initRC(function (err, result) {
     _simpleSpinner2.default.stop();
@@ -110,14 +90,14 @@ var init = function init() {
 /**
  * PUBLISH
  */
-var publish = function publish() {
+var publish = function publish(options) {
   _simpleSpinner2.default.start();
   initRC(function (err, result) {
     if (err) _print2.default.error(err);
     locateComposrJson(function (err, config) {
       if (err) return _print2.default.error(err);
       config.ACCESS_TOKEN = ACCESS_TOKEN;
-      (0, _publish2.default)(config);
+      (0, _publish2.default)(config, options);
     });
   });
 };
@@ -125,7 +105,7 @@ var publish = function publish() {
 /**
  * Get environments status
  */
-var getStatus = function getStatus() {
+var getStatus = function getStatus(options) {
   locateComposrJson(function (err, obj) {
     if (err) return _print2.default.error(err);
     var envStatus = obj.environments.map(function (url) {
@@ -288,6 +268,30 @@ var loginClient = function loginClient(credentials, next) {
     }
   });
 };
+/**
+* ------------------
+* CLI INITIALIZATION
+* ------------------
+*/
+var cli = (0, _commandLineArgs2.default)([{ name: 'publish', alias: 'p', type: Boolean }, { name: 'init', alias: 'i', type: Boolean }, { name: 'status', alias: 's', type: Boolean }, { name: 'help', alias: 'h', type: String, defaultOption: true }, { name: 'phrases', type: String, multiple: true }, { name: 'version', alias: 'v', type: String }, { name: 'environment', alias: 'e', type: String, multiple: true }, { name: 'verbose', alias: 'b', type: Boolean }]);
+
+var options = cli.parse();
+
+if (options.init === true) {
+  _print2.default.ok('Initialization ...');
+  init(options);
+}
+if (options.publish === true) {
+  _print2.default.ok('Publish Loading ...');
+  publish(options);
+}
+if (options.status === true) {
+  _print2.default.ok('Loading environments status ...');
+  getStatus(options);
+}
+if (options.help === true) {
+  cli.getUsage();
+}
 
 /**
  * uncaughtException handler

@@ -49,6 +49,27 @@ let exampleDocumentationForVerb = {
   }
 }
 
+let exampleResponse200 = { 
+  hello : "world" 
+}
+
+let exampleResponse400 = {
+  httpStatus: 400,
+  error: 'bad:request',
+  errorDescription: 'Bad request'
+}
+
+let exampleResponse401 = {
+  httpStatus: 401,
+  error: 'unauthorized',
+  errorDescription: 'Unauthorized'
+}
+
+let exampleBodyRequest = {
+  name: 'test',
+  age: 10
+}
+
 let generatePhrase = (phraseName, phraseUrl, verbs, rootFolder, next) => {
   // Generate the phrase model
   let thePhrase = {
@@ -58,7 +79,10 @@ let generatePhrase = (phraseName, phraseUrl, verbs, rootFolder, next) => {
   verbs = verbs ? verbs.map(_.toLower) : ['get', 'post', 'put', 'delete']
 
   verbs.forEach(function (verb) {
-    thePhrase[verb] = {}
+    //Enable middlewars support.
+    thePhrase[verb] = {
+      middlewares : ['mock', 'validate']
+    }
     thePhrase[verb].doc = _.cloneDeep(exampleDocumentationForVerb)
     thePhrase[verb].doc.description = _.replace(thePhrase[verb].doc.description, 'VERB', verb)
   })
@@ -68,9 +92,6 @@ let generatePhrase = (phraseName, phraseUrl, verbs, rootFolder, next) => {
   // File names
   let sanitizedName = _.camelCase(phraseName)
   let phraseModelFileName = sanitizedName + '.model.json'
-  let phraseCodeFileNames = verbs.map(function (verb) {
-    return sanitizedName + '.' + verb + '.code.js'
-  })
 
   // Create the phrase folder
   rootFolder = rootFolder ? rootFolder : process.cwd()
@@ -84,10 +105,35 @@ let generatePhrase = (phraseName, phraseUrl, verbs, rootFolder, next) => {
     }
   ]
 
-  phraseCodeFileNames.forEach(function (fileName) {
+  //Write the code files and the request / response examples
+  verbs.forEach(function (verb) {
+    let codeFileName = sanitizedName + '.' + verb + '.code.js';
+    let response200FileName = sanitizedName + '.' + verb + '.response.200.json';
+    let response400FileName = sanitizedName + '.' + verb + '.response.400.json';
+    let response401FileName = sanitizedName + '.' + verb + '.response.401.json';
+    let requestBodyFileName = sanitizedName + '.' + verb + '.body.json';
+    
     parallelWrites.push(function (cb) {
-      writeFile(phraseFolderDir + '/' + fileName, 'res.status(200).send("ok")', cb)
+      writeFile(phraseFolderDir + '/' + codeFileName, 'res.status(200).send({ hello : "world" })', cb)
     })
+
+    parallelWrites.push(function (cb) {
+      writeFile(phraseFolderDir + '/' + response200FileName, JSON.stringify(exampleResponse200, null, 2), cb)
+    })
+
+    parallelWrites.push(function (cb) {
+      writeFile(phraseFolderDir + '/' + response400FileName, JSON.stringify(exampleResponse400, null, 2), cb)
+    })
+
+    parallelWrites.push(function (cb) {
+      writeFile(phraseFolderDir + '/' + response401FileName, JSON.stringify(exampleResponse401, null, 2), cb)
+    })
+
+    if(verb === 'post' || verb === 'put'){
+      parallelWrites.push(function (cb) {
+        writeFile(phraseFolderDir + '/' + requestBodyFileName, JSON.stringify(exampleBodyRequest, null, 2), cb)
+      })
+    }
   })
 
   async.parallel(parallelWrites, function (err, results) {

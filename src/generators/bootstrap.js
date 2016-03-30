@@ -3,7 +3,7 @@
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 import _ from 'lodash'
-import async from 'async'
+import async from 'async2'
 import phraseGenerator from './phrase'
 import snippetsGenerator from './snippet'
 
@@ -25,8 +25,19 @@ function bootstrapProject(rootFolder, next){
   makePath(phrasesFolder)
   makePath(snippetsFolder)
 
-  //Generate a demo phrae
-  phraseGenerator('Demo Phrase', 'demo/endpoint/:idparameter', ['get', 'post', 'put', 'delete'], phrasesFolder, next)
+  //Generate demo stuff
+  var parallelWrites = [
+    function (cb) {
+      phraseGenerator('Example Phrase', 'demo/endpoint/:idparameter', ['get', 'post', 'put', 'delete'], phrasesFolder + '/', cb)
+    },
+    function(cb){
+      snippetsGenerator('Example Snippet', snippetsFolder + '/', cb);
+    }
+  ]
+
+  async.parallel(parallelWrites, function (err, results) {
+    next(err, results)
+  })
 }
 
 function writeFile(path, body, next){

@@ -154,10 +154,19 @@ var generatePhrase = function generatePhrase() {
 var getStatus = function getStatus(options) {
   locateComposrJson(function (err, obj) {
     if (err) return _print2.default.error(err);
-    var envStatus = obj.environments.map(function (url) {
-      return url + '/status';
-    });
-    (0, _status2.default)(envStatus, _simpleSpinner2.default);
+    if (obj.environments && Array.isArray(obj.environments)) {
+      var envStatus = obj.environments.map(function (env) {
+        var status_ = '/status';
+        var urlBase = env.urlBase.replace('{{module}}/v1.0/', 'composr');
+        if (urlBase.slice(-1) === '/') {
+          status_ = 'status';
+        }
+        return urlBase + status_;
+      });
+      (0, _status2.default)(envStatus, _simpleSpinner2.default);
+    } else {
+      _print2.default.info('Unable to find valid environments properties in your local composr.json');
+    }
   });
 };
 

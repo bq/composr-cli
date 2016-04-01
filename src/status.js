@@ -10,40 +10,42 @@ let _request = (urls, callback) => {
   let c = 0
   let handler = (error, response, body) => {
 
-      let url = response.request.uri.href
+    let url = response.request.uri.href
 
-      results[url] = {
-        error: error,
-        response: response,
-        body: body
-      }
-
-      if (++c === urls.length) {
-        callback(results)
-      }
+    results[url] = {
+      error: error,
+      response: response,
+      body: body
     }
+
+    if (++c === urls.length) {
+      callback(results)
+    }
+  }
 
   while (t--) {
     req(urls[t], handler)
   }
 }
 const status = (environmentsUrls, spinner) => {
+  console.log(environmentsUrls)
   spinner.start()
   _request(environmentsUrls, (responses) => {
     spinner.stop()
     let table = new Table({
-    head: [
-      'Url',
-      'Env',
-      'Domains',
-      'Version',
-      'Phrases',
-      'Phrases Loaded',
-      'Worker',
-      'IAM',
-      'Resources',
-      'Assets',
-      'Evci']
+      head: [
+        'Url',
+        'Env',
+        'Domains',
+        'Version',
+        'Phrases',
+        'Phrases Loaded',
+        'Worker',
+        'IAM',
+        'Resources',
+        'Assets',
+        'Evci'
+      ]
     })
 
     for (let url in responses) {
@@ -65,7 +67,8 @@ const status = (environmentsUrls, spinner) => {
           res.body.statuses.iam,
           res.body.statuses.resources,
           res.body.statuses.assets,
-          res.body.statuses.evci])
+          res.body.statuses.evci
+        ])
       }
     }
     console.log(table.toString())

@@ -40,6 +40,7 @@ var _request = function _request(urls, callback) {
   }
 };
 var status = function status(environmentsUrls, spinner) {
+  console.log(environmentsUrls);
   spinner.start();
   _request(environmentsUrls, function (responses) {
     spinner.stop();

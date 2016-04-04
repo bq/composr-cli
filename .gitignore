@@ -8,3 +8,4 @@ npm-debug.log
 example
 .composrc 
 .tmp
+dist

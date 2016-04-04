@@ -3,7 +3,7 @@ import bootstrap from '../src/generators/bootstrap'
 import fs from 'fs'
 
 test('bootstrap, file generation', (t) => {
-  t.plan(6)
+  t.plan(7)
   bootstrap('./.tmp/', function (err) {
     t.equal(err, null, 'Does not return an error')
 
@@ -12,6 +12,7 @@ test('bootstrap, file generation', (t) => {
       'src/phrases',
       'src/phrases/examplePhrase',
       'src/snippets',
+      'src/snippets/userModel.snippet.js',
       'test'
     ]
 

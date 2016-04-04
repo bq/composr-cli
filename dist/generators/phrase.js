@@ -19,6 +19,8 @@ var _async2 = _interopRequireDefault(_async);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var EXAMPLE_PHRASE_CODE = _fs2.default.readFileSync(__dirname + '/examples/phrase-code.js');
+
 var makePath = function makePath(path) {
   _mkdirp2.default.sync(path);
 };
@@ -124,7 +126,7 @@ var generatePhrase = function generatePhrase(phraseName, phraseUrl, verbs, rootF
     var requestBodyFileName = sanitizedName + '.' + verb + '.body.json';
 
     parallelWrites.push(function (cb) {
-      writeFile(phraseFolderDir + '/' + codeFileName, 'res.status(200).send({ hello : "world" })', cb);
+      writeFile(phraseFolderDir + '/' + codeFileName, EXAMPLE_PHRASE_CODE, cb);
     });
 
     parallelWrites.push(function (cb) {

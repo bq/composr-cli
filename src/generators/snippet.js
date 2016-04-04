@@ -3,16 +3,17 @@
 import fs from 'fs'
 import _ from 'lodash'
 
+let EXAMPLE_SNIPPET_CODE = fs.readFileSync(__dirname + '/examples/snippet-code.js');
+
 let generateSnippet = (snippetName, rootFolder, next) => {
   // File names
   let sanitizedName = _.camelCase(snippetName)
   let snippetFileName = sanitizedName + '.snippet.js'
-  let snippetCode = 'var text = "Hi I am an Snippet"; \n exports(text);';
 
   // Create the phrase folder (TODO use the snippets folder)
   rootFolder = rootFolder ? rootFolder : process.cwd()
   
-  writeFile(rootFolder + '/' + snippetFileName, snippetCode, next)
+  writeFile(rootFolder + '/' + snippetFileName, EXAMPLE_SNIPPET_CODE, next)
 }
 
 let writeFile = (path, body, next) => {

@@ -32,7 +32,6 @@ var generatorWithQuestions = function generatorWithQuestions(config) {
     }],
     default: 1
   }], function (answers) {
-    console.log(answers);
     switch (answers['type']) {
       case 'phrase':
         generatePhrase(config.source_location + '/phrases');
@@ -99,7 +98,7 @@ var generateSnippet = function generateSnippet(sourceLocation) {
     if (!answers['name']) {
       return _print2.default.error('Please choose a snippet name');
     }
-    (0, _phrase2.default)(answers['name'], sourceLocation, function (err) {
+    (0, _snippet2.default)(answers['name'], sourceLocation, function (err) {
       if (err) {
         _print2.default.error(err);
       } else {

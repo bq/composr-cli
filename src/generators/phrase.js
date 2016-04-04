@@ -5,6 +5,8 @@ import mkdirp from 'mkdirp'
 import _ from 'lodash'
 import async from 'async2'
 
+let EXAMPLE_PHRASE_CODE = fs.readFileSync(__dirname + '/examples/phrase-code.js');
+
 let makePath = (path) => {
   mkdirp.sync(path)
 }
@@ -114,7 +116,7 @@ let generatePhrase = (phraseName, phraseUrl, verbs, rootFolder, next) => {
     let requestBodyFileName = sanitizedName + '.' + verb + '.body.json';
     
     parallelWrites.push(function (cb) {
-      writeFile(phraseFolderDir + '/' + codeFileName, 'res.status(200).send({ hello : "world" })', cb)
+      writeFile(phraseFolderDir + '/' + codeFileName, EXAMPLE_PHRASE_CODE, cb)
     })
 
     parallelWrites.push(function (cb) {

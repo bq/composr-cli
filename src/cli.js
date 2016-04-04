@@ -23,8 +23,8 @@ import genPhrase from './generators/phrase'
  * @return {[type]} [description]
  */
 let getUserHome = () => {
-  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
-}
+    return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
+  }
   /**
    * Credentials
    */
@@ -68,40 +68,40 @@ let publish = (options) => {
 /**
  * Generate Phrase
  */
- // phraseGenerator(answers['name'], answers['url'], answers['verbs'])
+// phraseGenerator(answers['name'], answers['url'], answers['verbs'])
 
 let generatePhrase = () => {
-  inquirer.prompt([{
-    type: 'input',
-    name: 'name',
-    message: 'Which name would you like for your endpoint?',
-    default: 'My Endpoint'
-  }, {
-    type: 'input',
-    name: 'url',
-    message: 'What is the URL of the endpoint?',
-    default: ''
-  }, {
-    type: 'checkbox',
-    name: 'verbs',
-    message: 'Which verbs will respond to?',
-    choices: ['get', 'post', 'put', 'delete'],
-    default: 1
-  }], (answers) => {
-    console.log(answers)
-    if (!answers['name']) {
-      return print.error('Please choose a phrase name')
-    }
-    if (!answers['url']) {
-      return print.error('Please choose a phrase url')
-    }
-    if (!answers['verbs']) {
-      return print.error('Please select any verb')
-    }
-    genPhrase(answers['name'], answers['url'], answers['verbs'], null, (err) => {
-      if (err) print.error(err)
+    inquirer.prompt([{
+      type: 'input',
+      name: 'name',
+      message: 'Which name would you like for your endpoint?',
+      default: 'My Endpoint'
+    }, {
+      type: 'input',
+      name: 'url',
+      message: 'What is the URL of the endpoint?',
+      default: ''
+    }, {
+      type: 'checkbox',
+      name: 'verbs',
+      message: 'Which verbs will respond to?',
+      choices: ['get', 'post', 'put', 'delete'],
+      default: 1
+    }], (answers) => {
+      console.log(answers)
+      if (!answers['name']) {
+        return print.error('Please choose a phrase name')
+      }
+      if (!answers['url']) {
+        return print.error('Please choose a phrase url')
+      }
+      if (!answers['verbs']) {
+        return print.error('Please select any verb')
+      }
+      genPhrase(answers['name'], answers['url'], answers['verbs'], null, (err) => {
+        if (err) print.error(err)
+      })
     })
-  })
 }
 /**
  * Get environments status
@@ -109,10 +109,19 @@ let generatePhrase = () => {
 let getStatus = (options) => {
   locateComposrJson((err, obj) => {
     if (err) return print.error(err)
-    let envStatus = obj.environments.map(url => {
-      return url + '/status'
-    })
-    status(envStatus, spinner)
+    if (obj.environments && Array.isArray(obj.environments)) {
+      let envStatus = obj.environments.map(env => {
+        let status_ = '/status'
+        let urlBase = env.urlBase.replace('{{module}}/v1.0/', 'composr')
+        if (urlBase.slice(-1) === '/') {
+          status_ = 'status'
+        }
+        return (urlBase + status_)
+      })
+      status(envStatus, spinner)
+    } else {
+      print.info('Unable to find valid environments properties in your local composr.json')
+    }
   })
 }
 
@@ -255,20 +264,20 @@ let locateRc = next => {
  * @return {[type]}             [description]
  */
 let loginClient = (credentials, next) => {
-  login(credentials, (err, creds, domain) => {
-    if (err) {
-      spinner.stop()
-      print.error(err)
-      return next(err, null)
-    } else {
-      spinner.stop()
-      print.ok('Login successful')
-      ACCESS_TOKEN = creds.access_token
-      DOMAIN = domain
-      return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
-    }
-  })
-}
+    login(credentials, (err, creds, domain) => {
+      if (err) {
+        spinner.stop()
+        print.error(err)
+        return next(err, null)
+      } else {
+        spinner.stop()
+        print.ok('Login successful')
+        ACCESS_TOKEN = creds.access_token
+        DOMAIN = domain
+        return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
+      }
+    })
+  }
   /**
    * ------------------
    * CLI INITIALIZATION

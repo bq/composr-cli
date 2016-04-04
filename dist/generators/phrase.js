@@ -61,6 +61,27 @@ var exampleDocumentationForVerb = {
   }
 };
 
+var exampleResponse200 = {
+  hello: "world"
+};
+
+var exampleResponse400 = {
+  httpStatus: 400,
+  error: 'bad:request',
+  errorDescription: 'Bad request'
+};
+
+var exampleResponse401 = {
+  httpStatus: 401,
+  error: 'unauthorized',
+  errorDescription: 'Unauthorized'
+};
+
+var exampleBodyRequest = {
+  name: 'test',
+  age: 10
+};
+
 var generatePhrase = function generatePhrase(phraseName, phraseUrl, verbs, rootFolder, next) {
   // Generate the phrase model
   var thePhrase = {
@@ -70,7 +91,10 @@ var generatePhrase = function generatePhrase(phraseName, phraseUrl, verbs, rootF
   verbs = verbs ? verbs.map(_lodash2.default.toLower) : ['get', 'post', 'put', 'delete'];
 
   verbs.forEach(function (verb) {
-    thePhrase[verb] = {};
+    //Enable middlewars support.
+    thePhrase[verb] = {
+      middlewares: ['mock', 'validate']
+    };
     thePhrase[verb].doc = _lodash2.default.cloneDeep(exampleDocumentationForVerb);
     thePhrase[verb].doc.description = _lodash2.default.replace(thePhrase[verb].doc.description, 'VERB', verb);
   });
@@ -80,9 +104,6 @@ var generatePhrase = function generatePhrase(phraseName, phraseUrl, verbs, rootF
   // File names
   var sanitizedName = _lodash2.default.camelCase(phraseName);
   var phraseModelFileName = sanitizedName + '.model.json';
-  var phraseCodeFileNames = verbs.map(function (verb) {
-    return sanitizedName + '.' + verb + '.code.js';
-  });
 
   // Create the phrase folder
   rootFolder = rootFolder ? rootFolder : process.cwd();
@@ -94,10 +115,35 @@ var generatePhrase = function generatePhrase(phraseName, phraseUrl, verbs, rootF
     writeFile(phraseFolderDir + '/' + phraseModelFileName, thePhrase, cb);
   }];
 
-  phraseCodeFileNames.forEach(function (fileName) {
+  //Write the code files and the request / response examples
+  verbs.forEach(function (verb) {
+    var codeFileName = sanitizedName + '.' + verb + '.code.js';
+    var response200FileName = sanitizedName + '.' + verb + '.response.200.json';
+    var response400FileName = sanitizedName + '.' + verb + '.response.400.json';
+    var response401FileName = sanitizedName + '.' + verb + '.response.401.json';
+    var requestBodyFileName = sanitizedName + '.' + verb + '.body.json';
+
     parallelWrites.push(function (cb) {
-      writeFile(phraseFolderDir + '/' + fileName, 'res.status(200).send("ok")', cb);
+      writeFile(phraseFolderDir + '/' + codeFileName, 'res.status(200).send({ hello : "world" })', cb);
     });
+
+    parallelWrites.push(function (cb) {
+      writeFile(phraseFolderDir + '/' + response200FileName, JSON.stringify(exampleResponse200, null, 2), cb);
+    });
+
+    parallelWrites.push(function (cb) {
+      writeFile(phraseFolderDir + '/' + response400FileName, JSON.stringify(exampleResponse400, null, 2), cb);
+    });
+
+    parallelWrites.push(function (cb) {
+      writeFile(phraseFolderDir + '/' + response401FileName, JSON.stringify(exampleResponse401, null, 2), cb);
+    });
+
+    if (verb === 'post' || verb === 'put') {
+      parallelWrites.push(function (cb) {
+        writeFile(phraseFolderDir + '/' + requestBodyFileName, JSON.stringify(exampleBodyRequest, null, 2), cb);
+      });
+    }
   });
 
   _async2.default.parallel(parallelWrites, function (err, results) {

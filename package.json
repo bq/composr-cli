@@ -12,7 +12,7 @@
     "dist/"
   ],
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist .tmp",
     "lint": "eslint src test",
     "check": "npm run lint -s && dependency-check package.json --entry src/*.js",
     "watch": "watch 'npm run build' src test",

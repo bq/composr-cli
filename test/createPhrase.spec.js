@@ -38,3 +38,38 @@ test('createPhrase, code generation', (t) => {
     t.equal(deleteCodeFileExists, true, 'The DELETE code file is written')
   })
 })
+
+test('createPhrase, examples generation', (t) => {
+  t.plan(9)
+  let phraseName = 'demo phrase'
+  let url = 'admin/demo/phrase'
+  let verbs = ['put', 'get']
+
+  createPhrase(phraseName, url, verbs, './.tmp/', function (err) {
+    t.equal(err, null, 'Does not return an error')
+
+    var filesThatShouldExist = [
+      'demoPhrase.get.response.200.json',
+      'demoPhrase.get.response.400.json',
+      'demoPhrase.get.response.401.json',
+      'demoPhrase.put.response.200.json',
+      'demoPhrase.put.response.400.json',
+      'demoPhrase.put.response.401.json',
+      'demoPhrase.put.body.json'
+    ]
+
+    var filesThatShouldNotExist = [
+      'demoPhrase.get.body.json'
+    ]
+
+    filesThatShouldExist.forEach(function(filename){
+      var fileExists = fs.existsSync('./.tmp/demoPhrase/' + filename)
+      t.equal(fileExists, true, filename + ' exists')
+    })
+   
+    filesThatShouldNotExist.forEach(function(filename){
+      var fileExists = fs.existsSync('./.tmp/demoPhrase/' + filename)
+      t.equal(fileExists, false, filename + ' does not exist')
+    })
+  })
+})

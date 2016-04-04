@@ -31,7 +31,7 @@ function bootstrapProject(rootFolder, next){
       phraseGenerator('Example Phrase', 'demo/endpoint/:idparameter', ['get', 'post', 'put', 'delete'], phrasesFolder + '/', cb)
     },
     function(cb){
-      snippetsGenerator('Example Snippet', snippetsFolder + '/', cb);
+      snippetsGenerator('User Model', snippetsFolder + '/', cb);
     }
   ]
 

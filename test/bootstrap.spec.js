@@ -10,7 +10,7 @@ test('bootstrap, file generation', (t) => {
     var filesThatShouldExist = [
       'src',
       'src/phrases',
-      'src/phrases/demoPhrase',
+      'src/phrases/examplePhrase',
       'src/snippets',
       'test'
     ]

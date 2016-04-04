@@ -6,7 +6,6 @@ import commandLineArgs from 'command-line-args'
 import jsonfile from 'jsonfile'
 import fs from 'fs'
 import YAML from 'yamljs'
-import inquirer from 'inquirer'
 import prompt from 'prompt'
 import path from 'path'
 import spinner from 'simple-spinner'
@@ -16,7 +15,7 @@ import writeCredentials from './writeCredentials'
 import status from './status'
 import Publish from './publish'
 import print from './print'
-import genPhrase from './generators/phrase'
+import generator from './generators/cli-ui'
 
 /**
  * [getUserHome description]
@@ -65,44 +64,6 @@ let publish = (options) => {
   })
 }
 
-/**
- * Generate Phrase
- */
-// phraseGenerator(answers['name'], answers['url'], answers['verbs'])
-
-let generatePhrase = () => {
-    inquirer.prompt([{
-      type: 'input',
-      name: 'name',
-      message: 'Which name would you like for your endpoint?',
-      default: 'My Endpoint'
-    }, {
-      type: 'input',
-      name: 'url',
-      message: 'What is the URL of the endpoint?',
-      default: ''
-    }, {
-      type: 'checkbox',
-      name: 'verbs',
-      message: 'Which verbs will respond to?',
-      choices: ['get', 'post', 'put', 'delete'],
-      default: 1
-    }], (answers) => {
-      console.log(answers)
-      if (!answers['name']) {
-        return print.error('Please choose a phrase name')
-      }
-      if (!answers['url']) {
-        return print.error('Please choose a phrase url')
-      }
-      if (!answers['verbs']) {
-        return print.error('Please select any verb')
-      }
-      genPhrase(answers['name'], answers['url'], answers['verbs'], null, (err) => {
-        if (err) print.error(err)
-      })
-    })
-}
 /**
  * Get environments status
  */
@@ -330,6 +291,10 @@ if (options.init === true) {
   print.ok('Initialization ...')
   init(options)
 }
+if (options.build === true) {
+  print.ok('Building definitions ...')
+  //build(options)
+}
 if (options.publish === true) {
   print.ok('Publish Loading ...')
   publish(options)
@@ -339,8 +304,11 @@ if (options.status === true) {
   getStatus(options)
 }
 if (options.generate === true) {
-  print.ok('Generating X ...')
-  generatePhrase()
+  print.ok('Launching generator ...')
+  locateComposrJson((err, config) => {
+    if (err) return print.error(err)
+    generator(config)
+  })
 }
 
 if (options.help === true) {

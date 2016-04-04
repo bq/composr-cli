@@ -46,8 +46,14 @@ npm -g install composr-cli
 ## Usage
 
 ```sh
-$ composr-cli -h
+$ composr -h
 ```
+
+## Available Options
+ 
+ - Status
+ - publish
+ - Help
 
 ## License
 

@@ -14,6 +14,7 @@ import login from './login'
 import writeCredentials from './writeCredentials'
 import status from './status'
 import Publish from './publish'
+import Build from './build'
 import print from './print'
 import generator from './generators/cli-ui'
 
@@ -49,9 +50,10 @@ let init = (options) => {
       })
     })
   }
-  /**
-   * PUBLISH
-   */
+
+/**
+ * PUBLISH
+ */
 let publish = (options) => {
   spinner.start()
   initRC((err, result) => {
@@ -60,6 +62,18 @@ let publish = (options) => {
       if (err) return print.error(err)
       config.ACCESS_TOKEN = ACCESS_TOKEN
       Publish(config, options)
+    })
+  })
+}
+
+/**
+ * Build
+ */
+let build = () => {
+  locateComposrJson((err, config) => {
+    if (err) return print.error(err)
+    Build(config, function(err, results){
+      console.log(results)
     })
   })
 }
@@ -239,85 +253,98 @@ let loginClient = (credentials, next) => {
       }
     })
   }
+  
+function startCommandLine(){
   /**
    * ------------------
    * CLI INITIALIZATION
    * ------------------
    */
-let cli = commandLineArgs([{
-  name: 'publish',
-  alias: 'p',
-  type: Boolean
-}, {
-  name: 'init',
-  alias: 'i',
-  type: Boolean
-}, {
-  name: 'status',
-  alias: 's',
-  type: Boolean
-}, {
-  name: 'generate',
-  alias: 'g',
-  type: Boolean,
-  defaultOption: false
-}, {
-  name: 'help',
-  alias: 'h',
-  type: String,
-  defaultOption: true
-}, {
-  name: 'phrases',
-  type: String,
-  multiple: true
-}, {
-  name: 'version',
-  alias: 'v',
-  type: String
-}, {
-  name: 'environment',
-  alias: 'e',
-  type: String,
-  multiple: true
-}, {
-  name: 'verbose',
-  alias: 'b',
-  type: Boolean
-}])
+  let cli = commandLineArgs([{
+    name: 'publish',
+    alias: 'p',
+    type: Boolean
+  }, {
+    name: 'init',
+    alias: 'i',
+    type: Boolean
+  }, {
+    name: 'status',
+    alias: 's',
+    type: Boolean
+  }, {
+    name: 'generate',
+    alias: 'g',
+    type: Boolean,
+    defaultOption: false
+  }, {
+    name: 'help',
+    alias: 'h',
+    type: String,
+    defaultOption: true
+  }, {
+    name: 'phrases',
+    type: String,
+    multiple: true
+  }, {
+    name: 'version',
+    alias: 'v',
+    type: String
+  }, {
+    name: 'environment',
+    alias: 'e',
+    type: String,
+    multiple: true
+  }, {
+    name: 'verbose',
+    alias: 'd',
+    type: Boolean
+  }, {
+    name: 'build',
+    alias: 'b',
+    type: Boolean
+  }])
 
-let options = cli.parse()
+  let options = cli.parse()
 
-if (options.init === true) {
-  print.ok('Initialization ...')
-  init(options)
-}
-if (options.build === true) {
-  print.ok('Building definitions ...')
-  //build(options)
-}
-if (options.publish === true) {
-  print.ok('Publish Loading ...')
-  publish(options)
-}
-if (options.status === true) {
-  print.ok('Loading environments status ...')
-  getStatus(options)
-}
-if (options.generate === true) {
-  print.ok('Launching generator ...')
-  locateComposrJson((err, config) => {
-    if (err) return print.error(err)
-    generator(config)
+  if (options.init === true) {
+    print.ok('Initialization ...')
+    init(options)
+  }
+  if (options.build === true) {
+    print.ok('Building definitions ...')
+    build(options)
+  }
+  if (options.publish === true) {
+    print.ok('Publish Loading ...')
+    publish(options)
+  }
+  if (options.status === true) {
+    print.ok('Loading environments status ...')
+    getStatus(options)
+  }
+  if (options.generate === true) {
+    print.ok('Launching generator ...')
+    locateComposrJson((err, config) => {
+      if (err) return print.error(err)
+      generator(config)
+    })
+  }
+
+  if (options.help === true) {
+    cli.getUsage()
+  }
+
+  /**
+   * uncaughtException handler
+   */
+  process.on('uncaughtException', err => {
+    print.error('Caught exception: ' + err)
   })
+
 }
 
-if (options.help === true) {
-  cli.getUsage()
+module.exports = {
+  cli : startCommandLine,
+  build : build
 }
-
-/**
- * uncaughtException handler
- */
-process.on('uncaughtException', err => {
-  print.error('Caught exception: ' + err)
-})

@@ -6,7 +6,7 @@ import Gauge from 'gauge'
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 let gauge = new Gauge()
-
+let snippets = []
 /**
  * Locate model files
  */
@@ -15,7 +15,7 @@ const buildSnippet = (config, next) => {
   let progress = 0
   glob('**/*.snippet.js', null, (err, files) => {
     if (err) return print.error(err)
-    let snippets = []
+    snippets = []
     let increment = (1 / files.length)
     print.ok(files.length + ' Snippets models founds')
     // bulk execution
@@ -49,7 +49,7 @@ const executeBuild = (list, next) => {
     gauge.hide()
     gauge.disable()
     if (err) print.error(err)
-    return next(err, results)
+    return next(err, snippets)
   })
 }
 

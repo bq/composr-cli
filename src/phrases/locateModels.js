@@ -28,9 +28,8 @@ const locateModels = (config, next) => {
           if (err) {
             return callback(err)
           } else {
-            let response = {model: model, filePath: filePath}
-            phrasesCreated.push(response)
-            return callback(null, response)
+            phrasesCreated.push(model)
+            return callback(null, model)
           }
         })
       })
@@ -43,10 +42,11 @@ const locateModels = (config, next) => {
       if (err) print.error(err)
       if (phrasesCreated.length > 0) {
         phrasesCreated.forEach(result => {
-          phraseURLs.push(result.model.url)
+          phraseURLs.push(result.url)
         })
       }
-      return next(err, results)
+      
+      return next(err, phrasesCreated)
     })
   })
 }

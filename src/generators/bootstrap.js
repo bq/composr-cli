@@ -28,7 +28,7 @@ function bootstrapProject(rootFolder, next){
   //Generate demo stuff
   var parallelWrites = [
     function (cb) {
-      phraseGenerator('Example Phrase', 'demo/endpoint/:idparameter', ['get', 'post', 'put', 'delete'], phrasesFolder + '/', cb)
+      phraseGenerator('Example Phrase', 'example/:idparameter', ['get', 'post', 'put', 'delete'], phrasesFolder + '/', cb)
     },
     function(cb){
       snippetsGenerator('User Model', snippetsFolder + '/', cb);

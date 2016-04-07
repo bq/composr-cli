@@ -291,7 +291,7 @@ function startCommandLine(){
     alias: 'v',
     type: String
   }, {
-    name: 'environment',
+    name: 'env',
     alias: 'e',
     type: String,
     multiple: true

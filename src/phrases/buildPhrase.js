@@ -4,6 +4,7 @@ import print from '../print'
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 import modelGeneration from './modelGeneration'
+import modelValidator from './modelValidator'
 /**
  * ------------------------------
  * Build Phrase
@@ -17,6 +18,11 @@ const buildPhrase = (config, modelFilePath, gauge, next) => {
   let phraseDirTmp = tmpDir + phraseDir.replace(tmpDir, '')
   let model = require(process.cwd() + '/' + modelFilePath)
   gauge.pulse(phraseName)
+  // call to build phrase  
+  toBuild(phraseDirTmp, phraseDir, phraseName, config, model, next)
+}
+
+const toBuild = (phraseDirTmp, phraseDir, phraseName, config, model, next) => {
   // Create temporal folder
   mkdirp(phraseDirTmp, (err) => {
     if (err) {
@@ -31,9 +37,13 @@ const buildPhrase = (config, modelFilePath, gauge, next) => {
           if (err) print.error(err)
           model.version = config.version
           let fileNameModel = phraseDirTmp + phraseName + '.model.json'
-          fs.writeFileSync(fileNameModel, JSON.stringify(model, null, '\t'))
-          // spinner.stop()
-          return next(null, result)
+          modelValidator({ model , phraseName}, (err, result) => {
+            if (!err) {
+              fs.writeFileSync(fileNameModel, JSON.stringify(model, null, '\t'))
+              return next(null, result)
+            }
+            return next(err, null)
+          })
         })
       })
     })

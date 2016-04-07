@@ -3,7 +3,7 @@
 import fs from 'fs'
 import _ from 'lodash'
 
-let EXAMPLE_SNIPPET_CODE = fs.readFileSync(__dirname + '/examples/snippet-code.js');
+let EXAMPLE_SNIPPET_CODE = fs.readFileSync(__dirname + '/templates/snippet-code.js');
 
 let generateSnippet = (snippetName, rootFolder, next) => {
   // File names

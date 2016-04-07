@@ -5,7 +5,7 @@ import mkdirp from 'mkdirp'
 import _ from 'lodash'
 import async from 'async2'
 
-let EXAMPLE_PHRASE_CODE = fs.readFileSync(__dirname + '/examples/phrase-code.js');
+let EXAMPLE_PHRASE_CODE = fs.readFileSync(__dirname + '/templates/phrase-code.js');
 
 let makePath = (path) => {
   mkdirp.sync(path)

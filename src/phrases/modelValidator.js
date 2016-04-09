@@ -4,7 +4,8 @@ import composr from 'composr-core'
  * @param  {[type]}
  * @return {[type]}
  */
-const modelValidator = (_model, next) => {
+const modelValidator = (_model, config, next) => {
+	if (config.force === true) return next(null, true)
     composr.Phrase.validate(_model.model)
     .then(function() {
         return next (null, true)

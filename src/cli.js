@@ -303,6 +303,11 @@ function startCommandLine(){
     name: 'build',
     alias: 'b',
     type: Boolean
+  },
+  {
+    name: 'force',
+    alias: 'f',
+    type: Boolean
   }])
 
   let options = cli.parse()

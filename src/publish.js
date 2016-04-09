@@ -12,6 +12,9 @@ import inquirer from 'inquirer'
  * @return {void}
  */
 const Publish = (config, options) => {
+    if (options.force){
+        config.force = true
+    }
     // Before build manage environments
     envs(config, (err, envList) => {
         const envNamesList = envList.map((m) => {
@@ -52,6 +55,7 @@ const goToBuild = (envName, envUrlBase, config) => {
     // Execution all tasks in serie
     build(config, (err, results) => {
         if (err) return print.error(err)
+        console.log(JSON.stringify(results, null, 2))
         print.ok('Publishing...')
     })
 }

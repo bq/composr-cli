@@ -5,6 +5,7 @@ import build from './build'
 import rimraf from 'rimraf'
 import envs from './environments'
 import inquirer from 'inquirer'
+import _ from 'highland'
 /**
  * Publish Module Entry
  * @param  {Object} config
@@ -55,8 +56,9 @@ const goToBuild = (envName, envUrlBase, config) => {
     // Execution all tasks in serie
     build(config, (err, results) => {
         if (err) return print.error(err)
-        console.log(JSON.stringify(results, null, 2))
         print.ok('Publishing...')
+        console.log(JSON.stringify(results, null, 2))
+        
     })
 }
 
@@ -72,6 +74,10 @@ const getUrlBase = (selectedEnv, envList) => {
         if (e.name === selectedEnv) currentEnv = e
     })
     return currentEnv
+}
+
+const pubToEnv = (item) => {
+    console.log('Publicando :', item)
 }
 
 module.exports = Publish

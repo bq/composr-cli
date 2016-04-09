@@ -247,7 +247,7 @@ let loginClient = (credentials, next) => {
       } else {
         spinner.stop()
         print.ok('Login successful')
-        ACCESS_TOKEN = creds.access_token
+        ACCESS_TOKEN = creds.accessToken
         DOMAIN = domain
         return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
       }

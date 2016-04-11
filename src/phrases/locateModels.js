@@ -17,7 +17,7 @@ const locateModels = (config, next) => {
     let phraseURLs = []
     let increment = (1 / files.length)
     print.ok(files.length + ' Phrases models founds')
-    // bulk execution
+    // bulk parallel execution
     let buildPhrasesExecList = []
     let phrasesCreated = []
     files.forEach(filePath => {

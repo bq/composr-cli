@@ -24,12 +24,7 @@ import generator from './generators/cli-ui'
  */
 let getUserHome = () => {
     return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
-  }
-  /**
-   * Credentials
-   */
-let ACCESS_TOKEN = null
-let DOMAIN = null
+}
   // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
 prompt.message = 'CompoSR'.cyan
@@ -40,9 +35,9 @@ prompt.delimiter = '><'.green
  * @return {[type]} [description]
  */
 let init = (options) => {
-    spinner.start()
+    //spinner.start()
     initRC((err, result) => {
-      spinner.stop()
+      //spinner.stop()
       if (err) print.error(err)
       locateComposrJson((err, result) => {
         if (err) print.error(err)
@@ -55,12 +50,11 @@ let init = (options) => {
  * PUBLISH
  */
 let publish = (options) => {
-  spinner.start()
+  //spinner.start()
   initRC((err, result) => {
     if (err) print.error(err)
     locateComposrJson((err, config) => {
       if (err) return print.error(err)
-      config.ACCESS_TOKEN = ACCESS_TOKEN
       Publish(config, options)
     })
   })
@@ -241,14 +235,10 @@ let locateRc = next => {
 let loginClient = (credentials, next) => {
     login(credentials, (err, creds, domain) => {
       if (err) {
-        spinner.stop()
         print.error(err)
         return next(err, null)
       } else {
-        spinner.stop()
-        print.ok('Login successful')
-        ACCESS_TOKEN = creds.access_token
-        DOMAIN = domain
+        print.ok('Credentials verified... OK')
         return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
       }
     })
@@ -291,7 +281,7 @@ function startCommandLine(){
     alias: 'v',
     type: String
   }, {
-    name: 'environment',
+    name: 'env',
     alias: 'e',
     type: String,
     multiple: true
@@ -302,6 +292,11 @@ function startCommandLine(){
   }, {
     name: 'build',
     alias: 'b',
+    type: Boolean
+  },
+  {
+    name: 'force',
+    alias: 'f',
     type: Boolean
   }])
 

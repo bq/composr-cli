@@ -14,7 +14,7 @@ const Build = (config, cb) => {
     if (err) return cb(err)
     // Build Phrase tasks
     buildPhrases(config, (err, phrases) => {
-      if (err) return cb(err)
+      if (err) print.error(err)
       // Build Snippets tasks
       buildSnippet(config, (err, snippets) => {
         if (err) return cb(err)

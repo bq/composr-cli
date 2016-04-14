@@ -1,11 +1,15 @@
 'use strict'
-
+/* cli modules */
 import print from './print'
 import build from './build'
 import rimraf from 'rimraf'
 import envs from './environments'
+import Pub from './publisher'
+import login from './login'
+/* general modules */
 import inquirer from 'inquirer'
-import _ from 'highland'
+
+
 /**
  * Publish Module Entry
  * @param  {Object} config
@@ -13,7 +17,7 @@ import _ from 'highland'
  * @return {void}
  */
 const Publish = (config, options) => {
-    if (options.force){
+    if (options.force) {
         config.force = true
     }
     // Before build manage environments
@@ -24,7 +28,8 @@ const Publish = (config, options) => {
         if (options.env && envNamesList[options.env[0]] !== -1) {
             // Only get first environment passes throw cli args
             let selectedEnv = getUrlBase(options.env[0], envList)
-            // Call to build phrases and snippets models
+                // Call to build phrases and snippets models
+            config.credentials = selectedEnv.credentials
             goToBuild(selectedEnv.name, selectedEnv.composrEndpoint, config)
         } else {
 
@@ -53,20 +58,30 @@ const goToBuild = (envName, envUrlBase, config) => {
     process.env.NODE_ENV = envName;
     process.env.ENV_ENDPOINT = envUrlBase;
     print.ok('You have selected :' + process.env.ENV_ENDPOINT);
-    // Execution all tasks in serie
-    build(config, (err, results) => {
+    // SignIn user to env
+    login(config.credentials, (err, creds) => {
         if (err) return print.error(err)
-        print.ok('Publishing...')
-        console.log(JSON.stringify(results, null, 2))
-        
+        process.env.AT = creds.accessToken
+        // Execution all tasks in serie
+        build(config, (err, results) => {
+            if (err) return print.error(err)
+            print.ok('Sending stuff to your Composr server!')
+            //console.log(JSON.stringify(results, null, 2))
+            process.env.COUNT_PHRASES = results.phrases.length
+            // Sending phrases list to composr
+            const _Pub = new Pub(results.phrases, (errors, results) => {
+                if (!errors) print.ok('All publish tasks done!')
+            })
+        })
     })
+
 }
 
 /**
  * getUrlBase
  * @param  {String} selectedEnv
- * @param  {Array} envList    
- * @return {String}            
+ * @param  {Array} envList
+ * @return {String}
  */
 const getUrlBase = (selectedEnv, envList) => {
     let currentEnv = null
@@ -74,10 +89,6 @@ const getUrlBase = (selectedEnv, envList) => {
         if (e.name === selectedEnv) currentEnv = e
     })
     return currentEnv
-}
-
-const pubToEnv = (item) => {
-    console.log('Publicando :', item)
 }
 
 module.exports = Publish

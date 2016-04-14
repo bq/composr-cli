@@ -66,6 +66,7 @@
     "watch": "*"
   },
   "dependencies": {
+    "async": "^2.0.0-rc.3",
     "async2": "^0.1.9",
     "chalk": "^1.1.1",
     "cli-table": "^0.3.1",

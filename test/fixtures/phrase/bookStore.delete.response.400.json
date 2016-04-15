@@ -1,0 +1,5 @@
+{
+  "httpStatus": 400,
+  "error": "bad:request",
+  "errorDescription": "Bad request"
+}

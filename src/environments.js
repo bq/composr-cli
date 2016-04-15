@@ -1,11 +1,10 @@
 /**
- * Environments manager
+ * Environments manager. Returns the list of environments.
  */
 
 const envManager = (config, next) => {
-    let envs = []
-    config.environments.forEach(env => {
-        envs.push({
+    let envs = config.environments.map(env => {
+        return {
             name: env.name,
             composrEndpoint: env.urlBase.replace('{{module}}', 'composr').replace('v1.0/', ''),
             credentials : {
@@ -14,7 +13,7 @@ const envManager = (config, next) => {
             	urlBase: env.urlBase,
             	clientSecret: env.clientSecret
             }
-        })
+        }
     })
 
     return next(null, envs)

@@ -17,6 +17,7 @@ import Publish from './publish'
 import Build from './build'
 import print from './print'
 import generator from './generators/cli-ui'
+import art from 'ascii-art'
 
 /**
  * [getUserHome description]
@@ -301,33 +302,30 @@ function startCommandLine(){
   }])
 
   let options = cli.parse()
+  console.log(options)
 
   if (options.init === true) {
     print.ok('Initialization ...')
     init(options)
-  }
-  if (options.build === true) {
+  } else if (options.build === true) {
     print.ok('Building definitions ...')
     build(options)
-  }
-  if (options.publish === true) {
+  } else if (options.publish === true) {
     print.ok('Publish Loading ...')
     publish(options)
-  }
-  if (options.status === true) {
+  } else if (options.status === true) {
     print.ok('Loading environments status ...')
     getStatus(options)
-  }
-  if (options.generate === true) {
+  } else if (options.generate === true) {
     print.ok('Launching generator ...')
     locateComposrJson((err, config) => {
       if (err) return print.error(err)
       generator(config)
     })
-  }
-
-  if (options.help === true) {
+  } else if (options.help === true) {
     cli.getUsage()
+  } else {
+    salute();
   }
 
   /**
@@ -336,8 +334,18 @@ function startCommandLine(){
   process.on('uncaughtException', err => {
     print.error('Caught exception: ' + err)
   })
-
 }
+
+let salute() => {
+  art.font('Composr', 'Doom', 'bright_green', function (rendered) {
+    console.log(rendered)
+    console.dir({
+      version : '0.5.0',
+      madeby : 'BQ'
+    })
+  })
+}
+
 
 module.exports = {
   cli : startCommandLine,

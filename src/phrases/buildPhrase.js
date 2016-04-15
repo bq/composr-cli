@@ -21,7 +21,7 @@ const buildPhrase = (config, modelFilePath, gauge, next) => {
   // call to build phrase
   // Check if model environment is set and is for the current env
   if (!model.environments) {
-    return next('model "environments" property is required : ' + model.url + '', null)
+    model.environments = ['*']
   }
 
   toBuild(phraseDirTmp, phraseDir, phraseName, config, model, next)

@@ -271,7 +271,7 @@ function startCommandLine(){
   }, {
     name: 'help',
     alias: 'h',
-    type: String,
+    type: Boolean,
     defaultOption: true
   }, {
     name: 'phrases',
@@ -302,7 +302,6 @@ function startCommandLine(){
   }])
 
   let options = cli.parse()
-  console.log(options)
 
   if (options.init === true) {
     print.ok('Initialization ...')
@@ -323,7 +322,7 @@ function startCommandLine(){
       generator(config)
     })
   } else if (options.help === true) {
-    cli.getUsage()
+    console.log(cli.getUsage())
   } else {
     salute();
   }
@@ -336,9 +335,12 @@ function startCommandLine(){
   })
 }
 
-let salute() => {
+let salute = () => {
   art.font('Composr', 'Doom', 'bright_green', function (rendered) {
     console.log(rendered)
+    console.log('Composr is a command line utility for bootstrapping your own composr projects');
+    console.log('Use -h to see the options. If you want to bootstrap a new project use composr -g');
+    console.log('-----------------------------------');
     console.dir({
       version : '0.5.0',
       madeby : 'BQ'

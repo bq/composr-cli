@@ -24,7 +24,6 @@ const Publish = (config, options) => {
     envs(config, (err, envList) => {
         
         let envExists = envList.find(item => item.name === options.env)
-        console.log(envExists);
         if (options.env && envNamesList[options.env[0]] !== -1) {
             // Only get first environment passes throw cli args
             let selectedEnv = getUrlBase(options.env[0], envList)

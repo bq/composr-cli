@@ -22,22 +22,23 @@ const Publish = (config, options) => {
     }
     // Before build manage environments
     envs(config, (err, envList) => {
-        const envNamesList = envList.map((m) => {
-            return m.name
-        })
+        
+        let envExists = envList.find(item => item.name === options.env)
         if (options.env && envNamesList[options.env[0]] !== -1) {
             // Only get first environment passes throw cli args
             let selectedEnv = getUrlBase(options.env[0], envList)
                 // Call to build phrases and snippets models
             config.credentials = selectedEnv.credentials
-            goToBuild(selectedEnv.name, selectedEnv.composrEndpoint, config)
+            //goToBuild(selectedEnv.name, selectedEnv.composrEndpoint, config)
         } else {
 
             inquirer.prompt([{
                 type: 'list',
                 name: 'environment',
                 message: 'Which environment do you want to choose?',
-                choices: envNamesList,
+                choices: envList.map((m) => {
+                    return m.name
+                }),
                 default: 1
             }], (answers) => {
                 goToBuild(answers['environment'], getUrlBase(answers['environment'], envList), config)

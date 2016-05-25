@@ -22,7 +22,7 @@ const Publish = (config, options) => {
   envs(config, (err, envList) => {
     if (err) print.error(err)
 
-    let envExists = envList.find(item => item.name === options.env[0])
+    let envExists = (options.env) ? envList.find(item => item.name === options.env[0]) : false
 
     if (options.env && envExists) {
       // Only get first environment passes throw cli args
@@ -40,7 +40,9 @@ const Publish = (config, options) => {
         }),
         default: 1
       }], (answers) => {
-        goToBuild(answers['environment'], getUrlBase(answers['environment'], envList), config)
+        let selectedEnv = getUrlBase(answers['environment'], envList)
+        config.credentials = selectedEnv.credentials
+        goToBuild(answers['environment'], selectedEnv, config)
       })
     }
   })
@@ -65,7 +67,7 @@ const goToBuild = (envName, envData, config) => {
     // Execution all tasks in serie
     build(config, (err, results) => {
       if (err) return print.error(err)
-      print.ok('Sending stuff to your Composr server!')
+      print.ok('Uploading stuff to your Composr...')
       // console.log(JSON.stringify(results, null, 2))
       process.env.COUNT_PHRASES = results.phrases.length
       // Sending phrases list to composr

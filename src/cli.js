@@ -68,7 +68,7 @@ let build = () => {
   locateComposrJson((err, config) => {
     if (err) return print.error(err)
     Build(config, function(err, results){
-      console.log(results)
+      if (err) print.error(err)
     })
   })
 }
@@ -244,7 +244,7 @@ let loginClient = (credentials, next) => {
       }
     })
   }
-  
+
 function startCommandLine(){
   /**
    * ------------------

@@ -59,20 +59,23 @@ const goToBuild = (envName, envData, config) => {
   // Environment selected
   process.env.NODE_ENV = envName
   process.env.ENV_ENDPOINT = envData.composrEndpoint
-  print.ok('You have selected :' + process.env.ENV_ENDPOINT)
+  print.info('You have selected :' + process.env.ENV_ENDPOINT)
   // SignIn user to env
   login(config.credentials, (err, creds) => {
     if (err) return print.error(err)
     process.env.AT = creds.accessToken
     // Execution all tasks in serie
-    build(config, (err, results) => {
+    build(config, (err, data) => {
       if (err) return print.error(err)
-      print.ok('Uploading stuff to your Composr...')
-      // console.log(JSON.stringify(results, null, 2))
-      process.env.COUNT_PHRASES = results.phrases.length
+      print.info('Uploading stuff to your Composr...')
+      // console.log(JSON.stringify(data, null, 2))
+      process.env.COUNT_PHRASES = data.phrases.length
       // Sending phrases list to composr
-      Pub(results.phrases, (errors, results) => {
-        if (!errors) print.ok('All publish tasks done!')
+      Pub('phrase',data.phrases, (errors, _pResults) => {
+        if (errors) print.error(errors)
+        Pub('snippet', data.snippets, (errors, _pResults) => {
+          if (!errors) print.info('All publish tasks done!')
+        })
       })
     })
   })

@@ -25,27 +25,27 @@ import art from 'ascii-art'
  */
 let getUserHome = () => {
     return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME']
-}
+  }
   // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
-prompt.message = 'CompoSR'.cyan
-prompt.delimiter = '><'.green
+prompt.message = 'CompoSR '.cyan
+prompt.delimiter = ' >< '.green
 
 /**
  * [init description]
  * @return {[type]} [description]
  */
 let init = (options) => {
-    //spinner.start()
-    initRC((err, result) => {
-      //spinner.stop()
+  //spinner.start()
+  initRC((err, result) => {
+    //spinner.stop()
+    if (err) print.error(err)
+    locateComposrJson((err, result) => {
       if (err) print.error(err)
-      locateComposrJson((err, result) => {
-        if (err) print.error(err)
-        print.ok('CompoSR ready to rock!')
-      })
+      print.ok('CompoSR ready to rock!')
     })
-  }
+  })
+}
 
 /**
  * PUBLISH
@@ -67,7 +67,7 @@ let publish = (options) => {
 let build = () => {
   locateComposrJson((err, config) => {
     if (err) return print.error(err)
-    Build(config, function(err, results){
+    Build(config, function(err, results) {
       if (err) print.error(err)
     })
   })
@@ -173,16 +173,16 @@ let locateComposrJson = next => {
  */
 let initRC = next => {
   if (!fs.existsSync(USER_HOME_ROOT)) fs.mkdirSync(USER_HOME_ROOT)
-  locateRc(next)
+  locateRc(false, next)
 }
 
 /**
  * [locateRc description]
  * @return {[type]} [description]
  */
-let locateRc = next => {
+let locateRc = (rewrite, next) => {
   fs.readFile(USER_HOME_ROOT + '/.composrc', 'utf8', (err, credentialsYml) => {
-    if (err) {
+    if (err || rewrite) {
       // start prompt
       prompt.start()
         //
@@ -234,18 +234,18 @@ let locateRc = next => {
  * @return {[type]}             [description]
  */
 let loginClient = (credentials, next) => {
-    login(credentials, (err, creds, domain) => {
-      if (err) {
-        print.error(err)
-        return next(err, null)
-      } else {
-        print.ok('Credentials verified... OK')
-        return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
-      }
-    })
-  }
+  login(credentials, (err, creds, domain) => {
+    if (err) {
+      print.error(err)
+      return next(err, null)
+    } else {
+      print.ok('Credentials verified... OK')
+      return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
+    }
+  })
+}
 
-function startCommandLine(){
+function startCommandLine() {
   /**
    * ------------------
    * CLI INITIALIZATION
@@ -294,10 +294,13 @@ function startCommandLine(){
     name: 'build',
     alias: 'b',
     type: Boolean
-  },
-  {
+  }, {
     name: 'force',
     alias: 'f',
+    type: Boolean
+  }, {
+    name: 'login',
+    alias: 'l',
     type: Boolean
   }])
 
@@ -323,8 +326,13 @@ function startCommandLine(){
     })
   } else if (options.help === true) {
     console.log(cli.getUsage())
+  } else if (options.login === true) {
+    locateRc(true, (err, creds) => {
+      print.ok('You are logged successfully')
+    })
   } else {
-    salute();
+    salute()
+    //dashboard()
   }
 
   /**
@@ -336,20 +344,19 @@ function startCommandLine(){
 }
 
 let salute = () => {
-  art.font('Composr', 'Doom', 'bright_green', function (rendered) {
+  art.font('Composr', 'Doom', 'bright_green', function(rendered) {
     console.log(rendered)
     console.log('Composr is a command line utility for bootstrapping your own composr projects');
     console.log('Use -h to see the options. If you want to bootstrap a new project use composr -g');
     console.log('-----------------------------------');
     console.dir({
-      version : '0.5.0',
-      madeby : 'BQ'
+      version: '0.5.0',
+      madeby: 'BQ'
     })
   })
 }
 
-
 module.exports = {
-  cli : startCommandLine,
-  build : build
+  cli: startCommandLine,
+  build: build
 }

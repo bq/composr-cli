@@ -18,6 +18,9 @@ const Publish = (config, options) => {
   if (options.force) {
     config.force = true
   }
+
+  // Set phrases and snippets version
+  process.env.PROJECT_VERSION = options.version ? options.version : config.version
   // Before build manage environments
   envs(config, (err, envList) => {
     if (err) print.error(err)

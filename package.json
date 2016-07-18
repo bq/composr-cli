@@ -1,6 +1,6 @@
 {
   "name": "composr-cli",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "CompoSR | Command Line Interface",
   "main": "bin/cli.js",
   "bin": {

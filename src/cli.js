@@ -119,8 +119,8 @@ let locateComposrJson = next => {
             type: 'string'
           },
           baseUri: {
-            message: 'Corbel Base URI',
-            default: 'https://api.example.com/{{module}}/v1.0/',
+            message: 'Composr Endpoint',
+            default: 'https://composr-int.bqws.io/',
             type: 'string'
           },
           author: {

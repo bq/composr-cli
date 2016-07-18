@@ -10,7 +10,7 @@ import prompt from 'prompt'
 import path from 'path'
 import spinner from 'simple-spinner'
 // Lib modules
-import login from './login'
+import Login from './login'
 import writeCredentials from './writeCredentials'
 import status from './status'
 import Publish from './publish'
@@ -18,6 +18,7 @@ import Build from './build'
 import print from './print'
 import generator from './generators/cli-ui'
 import art from 'ascii-art'
+import Unpublisher from './unpublisher'
 
 /**
  * [getUserHome description]
@@ -57,6 +58,19 @@ let publish = (options) => {
     locateComposrJson((err, config) => {
       if (err) return print.error(err)
       Publish(config, options)
+    })
+  })
+}
+
+/**
+ * UNPUBLISH
+ */
+let unpublish = (options) => {
+  initRC((err, result) => {
+    if (err) print.error(err)
+    locateComposrJson((err, config) => {
+      if (err) return print.error(err)
+      Unpublisher(config, options)
     })
   })
 }
@@ -234,12 +248,13 @@ let locateRc = (rewrite, next) => {
  * @return {[type]}             [description]
  */
 let loginClient = (credentials, next) => {
-  login(credentials, (err, creds, domain) => {
+  Login(credentials, (err, creds, domain) => {
     if (err) {
       print.error(err)
       return next(err, null)
     } else {
       print.ok('Credentials verified... OK')
+      process.env.ACCESS_TOKEN = creds.accessToken
       return writeCredentials(USER_HOME_ROOT + '/.composrc', creds, next)
     }
   })
@@ -254,6 +269,10 @@ function startCommandLine() {
   let cli = commandLineArgs([{
     name: 'publish',
     alias: 'p',
+    type: Boolean
+  }, {
+    name: 'unpublish',
+    alias: 'u',
     type: Boolean
   }, {
     name: 'init',
@@ -315,6 +334,9 @@ function startCommandLine() {
   } else if (options.publish === true) {
     print.ok('Publish Loading ...')
     publish(options)
+  } else if (options.unpublish === true) {
+    print.ok('Unpublish Loading ...')
+    unpublish(options)
   } else if (options.status === true) {
     print.ok('Loading environments status ...')
     getStatus(options)
@@ -332,7 +354,7 @@ function startCommandLine() {
     })
   } else {
     salute()
-    //dashboard()
+      //dashboard()
   }
 
   /**

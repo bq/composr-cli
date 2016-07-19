@@ -3,6 +3,7 @@
 process.bin = process.title = 'composr-cli'
 
 import commandLineArgs from 'command-line-args'
+import colors from 'colors/safe'
 import jsonfile from 'jsonfile'
 import fs from 'fs'
 import YAML from 'yamljs'
@@ -29,8 +30,9 @@ let getUserHome = () => {
   }
   // CONST
 const USER_HOME_ROOT = getUserHome() + '/.composr'
-prompt.message = 'CompoSR '.cyan
-prompt.delimiter = ' >< '.green
+
+prompt.message = colors.cyan('CompoSR')
+prompt.delimiter = colors.green('><')
 
 /**
  * [init description]
@@ -122,18 +124,18 @@ let locateComposrJson = next => {
       let schema = {
         properties: {
           name: {
-            message: 'Your composr vdomain name',
+            message: colors.cyan('Your project name'),
             default: path.basename(process.cwd()),
             type: 'string'
           },
           subdomain: {
-            message: 'Your Subdomain name',
-            default: '',
+            message: 'Your domain',
+            default: 'mydomain',
             type: 'string'
           },
           baseUri: {
-            message: 'Your composr vdomain url',
-            default: 'https://api.example.com',
+            message: 'Composr Endpoint',
+            default: 'https://composr-int.bqws.io/',
             type: 'string'
           },
           author: {
@@ -147,9 +149,10 @@ let locateComposrJson = next => {
             type: 'string'
           },
           source_location: {
-            message: 'Where is my phrases code?',
+            message: 'Where is my code?',
             default: 'src/',
-            type: 'string'
+            type: 'string',
+            required: true
           },
           git: {
             message: 'Git repository url',
@@ -168,13 +171,13 @@ let locateComposrJson = next => {
       prompt.get(schema, (err, result) => {
         if (err) print.error(err)
         result.vd_dependencies = {}
-        result.domain = DOMAIN
-        result.id = DOMAIN + '!' + result.name
+        //result.domain = DOMAIN
+        //result.id = DOMAIN + '!' + result.name
         result.environments = []
           // creating composr.json
         fs.writeFile(process.cwd() + '/composr.json', JSON.stringify(result, null, 2), (err) => {
           if (err) return next(err, false)
-          return next(null, true)
+          return next(null, result)
         })
       })
     }

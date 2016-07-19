@@ -43,9 +43,9 @@ function Publisher (_type, items, next) {
 
   if (_type === 'phrase'){
     _items = _.filter(items, {
-      'marked': true
+      '__meta.marked': true
     }).map((item) => {
-      return fs.readFileSync(item.modelPath)
+      return fs.readFileSync(item.__meta.modelPath)
     })
   } else{
     _items = items

@@ -51,9 +51,33 @@ $ composr -h
 
 ## Available Options
  
- - Status
- - publish
- - Help
+```
+Options
+
+  -p, --publish           
+  -i, --init              
+  -s, --status            
+  -g, --generate          
+  -h, --help              
+  --phrases string[]      
+  -v, --version string    
+  -e, --env string[]      
+  -d, --verbose           
+  -b, --build             
+  -f, --force  
+```
+
+### Publish
+
+Publish your phrases and snippets to Composr
+
+### Generate
+
+Bootstrap a project
+
+### Build
+
+Builds local phrases and snippets into Composr-core usable JSONs
 
 ## License
 

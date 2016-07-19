@@ -55,11 +55,13 @@ const toBuild = (phraseDirTmp, phraseDir, phraseName, config, model, next) => {
             if (!err) {
               fs.writeFileSync(fileNameModel, JSON.stringify(model, null, '\t'))
               // Check environment for current destination
-              var response = { marked : false , modelPath : fileNameModel }
+              var __meta = { marked : false , modelPath : fileNameModel }
               if (model.environments.indexOf(process.NODE_ENV) !== -1 || model.environments[0] === '*'){
-                response.marked = true
+                __meta.marked = true
               }
-              return next(null, response)
+              model.__meta = __meta 
+              
+              return next(null, model)
             }
             return next(err, null)
           })

@@ -1,6 +1,10 @@
 {
   "name": "composr-cli",
+<<<<<<< HEAD
   "version": "1.0.0",
+=======
+  "version": "0.5.5",
+>>>>>>> 55a0abdf8c7b1f78412d9e7befb75c3ca5807043
   "description": "CompoSR | Command Line Interface",
   "main": "bin/cli.js",
   "bin": {
@@ -77,6 +81,7 @@
     "cli-progress": "^1.1.2",
     "cli-table": "^0.3.1",
     "co": "^4.6.0",
+    "colors": "^1.1.2",
     "command-line-args": "^2.1.6",
     "composr-core": "^2.1.0",
     "corbel-js": "^0.3.4",
@@ -91,7 +96,7 @@
     "mkdirp": "^0.5.1",
     "node-dir": "^0.1.11",
     "progress": "^1.1.8",
-    "prompt": "^0.2.14",
+    "prompt": "^1.0.0",
     "recursive-readdir": "^1.3.0",
     "request": "^2.69.0",
     "request-promise": "^4.0.2",

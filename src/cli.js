@@ -18,6 +18,7 @@ import Publish from './publish'
 import Build from './build'
 import print from './print'
 import generator from './generators/cli-ui'
+import Bootstrap from './generators/bootstrap'
 import art from 'ascii-art'
 import Unpublisher from './unpublisher'
 
@@ -324,6 +325,10 @@ function startCommandLine() {
     name: 'login',
     alias: 'l',
     type: Boolean
+  },{
+    name: 'new',
+    alias: 'n',
+    type: Boolean
   }])
 
   let options = cli.parse()
@@ -343,6 +348,11 @@ function startCommandLine() {
   } else if (options.status === true) {
     print.ok('Loading environments status ...')
     getStatus(options)
+  } else if (options.new === true) {
+    print.ok('Creating project ...')
+    Bootstrap(null,() => {
+      print.ok('Your project is built')
+    })
   } else if (options.generate === true) {
     print.ok('Launching generator ...')
     locateComposrJson((err, config) => {

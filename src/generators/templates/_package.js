@@ -1,4 +1,4 @@
-{
+module.exports = JSON.stringify({
   "name": "<%= projectname %>",
   "version": "0.0.0",
   "description": "A new composr project",
@@ -39,4 +39,4 @@
     "request": "^2.64.0",
     "tap-file": "0.0.2"
   }
-}
+}, null, 2)

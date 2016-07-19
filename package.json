@@ -94,6 +94,7 @@
     "prompt": "^0.2.14",
     "recursive-readdir": "^1.3.0",
     "request": "^2.69.0",
+    "request-promise": "^4.0.2",
     "rimraf": "^2.5.2",
     "simple-spinner": "0.0.5",
     "yamljs": "^0.2.4"

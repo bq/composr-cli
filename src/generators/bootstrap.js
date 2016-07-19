@@ -17,6 +17,7 @@ function bootstrapProject(rootFolder, next){
   let folders = ['phrases', 'snippets']
   let codeFolder = rootFolder + '/src'
   let testFolder = rootFolder + '/test'
+  let configFolder = rootFolder + '/config'
   let phrasesFolder = codeFolder + '/phrases'
   let snippetsFolder = codeFolder + '/snippets'
   
@@ -24,6 +25,9 @@ function bootstrapProject(rootFolder, next){
   makePath(testFolder)
   makePath(phrasesFolder)
   makePath(snippetsFolder)
+  makePath(configFolder)
+
+  writeFile(configFolder + '/default.json', require('./templates/_default.js'), function(){})
 
   //Generate demo stuff
   var parallelWrites = [

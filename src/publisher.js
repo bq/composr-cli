@@ -13,10 +13,8 @@ import _progress from 'cli-progress'
 function pubPhrase (_type, data, callback) {
   let modelType = (_type === 'phrase') ? 'phrase' : 'snippet'
   let uploadUrl = process.env.ENV_ENDPOINT + modelType
-  let _json = (_type === 'phrase') ? JSON.parse(data) : data
-  _json.version = process.env.PROJECT_VERSION
-  // progress bar
-
+  //let _json = (_type === 'phrase') ? JSON.parse(data) : data
+  data.version = process.env.PROJECT_VERSION
   // call to request
   request({
     url: uploadUrl,
@@ -24,9 +22,9 @@ function pubPhrase (_type, data, callback) {
       'Authorization': 'Bearer ' + process.env.AT
     },
     method: 'PUT',
-    json: _json
+    json: data
   }, (err, response, body) => {
-    if (err) callback(err, null)
+    if (err) callback(err, body)
     if (response.statusCode === 401) {
       console.log(response.statusCode)
     } else if (response.statusCode.toString().indexOf('2') === 0) {
@@ -42,14 +40,18 @@ function Publisher (_type, items, next) {
   let _items = null
 
   if (_type === 'phrase'){
-    _items = _.filter(items, {
-      '__meta.marked': true
-    }).map((item) => {
-      return fs.readFileSync(item.__meta.modelPath)
+
+    _items = items.filter((i) => {
+      return (i.__meta.marked === true)
+    }).map((it) => {
+      delete it.__meta
+      return it
     })
+
   } else{
     _items = items
   }
+
   // Progress Bar
   let bar1 = new _progress.Bar({
     format : 'Publishing [{bar}] {percentage}% | ETA: {eta}s | Current: P({value})',
@@ -70,7 +72,7 @@ function Publisher (_type, items, next) {
     } else {
       bar1.update(i)
       pubPhrase(_type, _items[i], (err, res) => {
-        if (err) print.error(err)
+        if (err) print.error({ error : err, msg: res })
         call('next') // this acts as increment (i++)
       })
     }

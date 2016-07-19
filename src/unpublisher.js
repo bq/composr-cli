@@ -89,7 +89,7 @@ const _modelizePhraseResponse = (phrasesList, options) => {
         json: true
       }))
     })
-    console.log('llama a _unpublish')
+
     // Call to unpublish
     _unpublish(deleteCalls, versionToDelete)
 

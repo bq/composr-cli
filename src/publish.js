@@ -5,8 +5,7 @@ import build from './build'
 import envs from './environments'
 import Pub from './publisher'
 import login from './login'
-/* general modules */
-import inquirer from 'inquirer'
+
 
 /**
  * Publish Module Entry
@@ -18,33 +17,13 @@ const Publish = (config, options) => {
   if (options.force) {
     config.force = true
   }
+
+  // Set phrases and snippets version
+  process.env.PROJECT_VERSION = options.version ? options.version : config.version
   // Before build manage environments
-  envs(config, (err, envList) => {
+  envs(config, options, (err, envName, selectedEnv, _config) => {
     if (err) print.error(err)
-
-    let envExists = (options.env) ? envList.find(item => item.name === options.env[0]) : false
-
-    if (options.env && envExists) {
-      // Only get first environment passes throw cli args
-      let selectedEnv = getUrlBase(options.env[0], envList)
-      // Call to build phrases and snippets models
-      config.credentials = selectedEnv.credentials
-      goToBuild(selectedEnv.name, selectedEnv, config)
-    } else {
-      inquirer.prompt([{
-        type: 'list',
-        name: 'environment',
-        message: 'Which environment do you want to choose?',
-        choices: envList.map((m) => {
-          return m.name
-        }),
-        default: 1
-      }], (answers) => {
-        let selectedEnv = getUrlBase(answers['environment'], envList)
-        config.credentials = selectedEnv.credentials
-        goToBuild(answers['environment'], selectedEnv, config)
-      })
-    }
+    goToBuild(envName, selectedEnv, _config)
   })
 }
 
@@ -79,20 +58,6 @@ const goToBuild = (envName, envData, config) => {
       })
     })
   })
-}
-
-/**
- * getUrlBase
- * @param  {String} selectedEnv
- * @param  {Array} envList
- * @return {String}
- */
-const getUrlBase = (selectedEnv, envList) => {
-  let currentEnv = null
-  envList.forEach(e => {
-    if (e.name === selectedEnv) currentEnv = e
-  })
-  return currentEnv
 }
 
 module.exports = Publish

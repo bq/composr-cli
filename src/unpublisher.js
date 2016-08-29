@@ -46,12 +46,11 @@ const _modelizePhraseResponse = (phrasesList, options) => {
   let versions = []
 
   let phrasesObjects = phrasesList.map((p) => {
-    let _ver = p.id.slice(-5)
-    versions.push(_ver)
+    versions.push(p.json.version)
     return {
       id: p.id,
       domain: p.domain,
-      version: _ver
+      version: p.json.version
     }
   })
   versions = _.uniq(versions)

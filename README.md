@@ -48,6 +48,10 @@ npm -g install composr-cli
 ```sh
 $ composr -h
 ```
+`publishing phrases to environment:`
+```sh
+composr -p --env=staging --version=2.10.0
+```
 
 ## Available Options
  

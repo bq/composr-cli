@@ -55,10 +55,10 @@ publishing phrases to environment:
 composr -p --env=staging --version=2.10.0
 ```
 
-remove phrases from environment:
+remove phrases by environment:
 
 ```sh
-composr -p --env=staging --version=2.10.0
+composr -u --env=staging --version=2.10.0
 ```
 
 ## Available Options

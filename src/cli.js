@@ -21,6 +21,7 @@ import generator from './generators/cli-ui'
 import Bootstrap from './generators/bootstrap'
 import art from 'ascii-art'
 import Unpublisher from './unpublisher'
+import Profiler from './profiler'
 
 /**
  * [getUserHome description]
@@ -329,6 +330,19 @@ function startCommandLine() {
     name: 'new',
     alias: 'n',
     type: Boolean
+  }, {
+    name: 'profiler',
+    alias: 'z',
+    type: Boolean
+  },{
+    name: 'live',
+    type: Boolean
+  }, {
+    name: 'port',
+    type: Number
+  },{
+    name: 'time',
+    type: Number
   }])
 
   let options = cli.parse()
@@ -365,9 +379,11 @@ function startCommandLine() {
     locateRc(true, (err, creds) => {
       print.ok('You are logged successfully')
     })
+  } else if (options.profiler === true){
+    Profiler(options)
   } else {
     salute()
-      //dashboard()
+    //dashboard()
   }
 
   /**

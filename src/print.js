@@ -4,7 +4,7 @@ let print = {}
 print.error = (text) => {
   let msg = text
   if (typeof text !== 'string'){
-    msg = JSON.stringify(text.data, null, 2)
+    msg = JSON.stringify(text, null, 2)
   }
   console.log(chalk.white.bgRed.bold(' Error ') + ' ' + chalk.white(msg))
   process.exit(1)

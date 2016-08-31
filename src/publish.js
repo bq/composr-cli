@@ -5,7 +5,6 @@ import build from './build'
 import envs from './environments'
 import Pub from './publisher'
 import login from './login'
-import health from './healthCheck'
 
 /**
  * Publish Module Entry
@@ -23,7 +22,6 @@ const Publish = (config, options) => {
   // Before build manage environments
   envs(config, options, (err, envName, selectedEnv, _config) => {
     if (err) print.error(err)
-    // (health(selectedEnv.urlBase)) ? goToBuild(envName, selectedEnv, _config) : print.error('Environment not available')
     goToBuild(envName, selectedEnv, _config)
   })
 }

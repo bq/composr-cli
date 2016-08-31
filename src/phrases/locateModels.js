@@ -21,6 +21,7 @@ const locateModels = (config, next) => {
     let buildPhrasesExecList = []
     let phrasesCreated = []
     files.forEach(filePath => {
+      debugger;
       progress += increment
       gauge.show('Building Phrases → ' + filePath, progress)
       buildPhrasesExecList.push((callback) => {
@@ -45,7 +46,6 @@ const locateModels = (config, next) => {
           phraseURLs.push(result.url)
         })
       }
-      
       return next(err, phrasesCreated)
     })
   })

@@ -5,7 +5,7 @@ import build from './build'
 import envs from './environments'
 import Pub from './publisher'
 import login from './login'
-import health from './healthCheck'
+import inquirer from 'inquirer'
 
 /**
  * Publish Module Entry
@@ -23,8 +23,9 @@ const Publish = (config, options) => {
   // Before build manage environments
   envs(config, options, (err, envName, selectedEnv, _config) => {
     if (err) print.error(err)
+    var publishSingle = options.isSingle || null;
     // (health(selectedEnv.urlBase)) ? goToBuild(envName, selectedEnv, _config) : print.error('Environment not available')
-    goToBuild(envName, selectedEnv, _config)
+    goToBuild(envName, selectedEnv, _config, publishSingle)
   })
 }
 
@@ -35,7 +36,7 @@ const Publish = (config, options) => {
  * @param  {Object} config
  * @return {void}
  */
-const goToBuild = (envName, envData, config) => {
+const goToBuild = (envName, envData, config, publishSingle) => {
   // Environment selected
   process.env.NODE_ENV = envName
   process.env.ENV_ENDPOINT = envData.composrEndpoint
@@ -47,18 +48,106 @@ const goToBuild = (envName, envData, config) => {
     // Execution all tasks in serie
     build(config, (err, data) => {
       if (err) return print.error(err)
+
       print.info('Uploading stuff to your Composr...')
-      // console.log(JSON.stringify(data, null, 2))
+
       process.env.COUNT_PHRASES = data.phrases.length
-      // Sending phrases list to composr
-      Pub('phrase',data.phrases, (errors, _pResults) => {
-        if (errors) print.error(errors)
-        Pub('snippet', data.snippets, (errors, _pResults) => {
-          if (!errors) print.info('All publish tasks done!')
-        })
-      })
+      if (publishSingle) {
+        // data.phrases = getSinglePhrases(data);
+        getSinglePhrases(data, (err, selectedPhrases) => {
+          data.phrases = selectedPhrases;
+          getSingleSnippets(data, (err, selectedSnippets) => {
+            data.snippets = selectedSnippets;
+            publish(data.phrases, data.snippets);
+          });
+        });
+      } else {
+        publish(data.phrases, data.snippets);
+      }
     })
   })
+}
+
+const publish = (phrases, snippets) => {
+  // Sending phrases list to composr
+  if (phrases.length) {
+    Pub('phrase', phrases, (errors, _pResults) => {
+      if (errors) print.error(errors)
+      if (snippets.length) {
+        Pub('snippet', snippets, (errors, _pResults) => {
+          if (!errors) print.info('All publish tasks done!');
+        })
+      } else {
+        print.info('All publish tasks done!');
+      }
+    })
+  } else if (snippets.length) {
+    Pub('snippet', snippets, (errors, _pResults) => {
+      if (!errors) print.info('All publish tasks done!');
+    })
+  } else {
+    print.info('No phrases/snippets selected, task done!')
+  }
+}
+
+const getSinglePhrases = (data, cb) => {
+  // Show assistant 
+  // Remove duplicated phrases
+  var selectedPhrases = [];
+  var phrasesCreatedNoDup = data.phrases.reduce(function(previous, el) {
+    var existsElement = previous.find(function(e) {
+      return e.__meta.modelPath === el.__meta.modelPath;
+    });
+    if (!existsElement) previous.push(el);
+    return previous;
+  }, []);
+  var phrasesChoices = phrasesCreatedNoDup.map(function(e) {
+    return {
+      name: e.url,
+      value: e.url
+    };
+  });
+
+  inquirer.prompt([{
+    type: 'checkbox',
+    name: 'phrases',
+    message: 'Which phrases do you want to publish?',
+    choices: phrasesChoices
+  }], function(answers) {
+    answers.phrases.forEach(function(t) {
+      var selected = data.phrases.filter(function(e) {
+        return e.url === t;
+      });
+      selectedPhrases = selectedPhrases.concat(selected);
+    });
+    cb(null, selectedPhrases);
+  });
+}
+
+const getSingleSnippets = (data, cb) => {
+  // Show assistant 
+  // Remove duplicated phrases.
+  var selectedSnippets = [];
+  var snippetsChoices = data.snippets.map(function(e) {
+    return {
+      name: e.name,
+      value: e.name
+    };
+  });
+  inquirer.prompt([{
+    type: 'checkbox',
+    name: 'snippets',
+    message: 'Which snippets do you want to publish?',
+    choices: snippetsChoices
+  }], function(answers) {
+    answers.snippets.forEach(function(t) {
+      var selected = data.snippets.filter(function(e) {
+        return e.name === t;
+      });
+      selectedSnippets = selectedSnippets.concat(selected);
+    });
+    cb(null, selectedSnippets);
+  });
 }
 
 module.exports = Publish

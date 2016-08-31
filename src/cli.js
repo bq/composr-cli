@@ -276,6 +276,10 @@ function startCommandLine() {
     alias: 'p',
     type: Boolean
   }, {
+    name: 'publishSingle',
+    alias: 'o',
+    type: Boolean
+  }, {
     name: 'unpublish',
     alias: 'u',
     type: Boolean
@@ -355,6 +359,10 @@ function startCommandLine() {
     build(options)
   } else if (options.publish === true) {
     print.ok('Publish Loading ...')
+    publish(options)
+  } else if (options.publishSingle === true) {
+    print.ok('Publish Single Loading ...')
+    options.isSingle = true
     publish(options)
   } else if (options.unpublish === true) {
     print.ok('Unpublish Loading ...')

@@ -284,6 +284,10 @@ function startCommandLine() {
     alias: 'u',
     type: Boolean
   }, {
+    name: 'unpublishSingle',
+    alias: 'r',
+    type: Boolean
+  }, {
     name: 'init',
     alias: 'i',
     type: Boolean
@@ -366,6 +370,10 @@ function startCommandLine() {
     publish(options)
   } else if (options.unpublish === true) {
     print.ok('Unpublish Loading ...')
+    unpublish(options)
+  } else if (options.unpublishSingle === true) {
+    print.ok('Unpublish Loading ...')
+    options.isSingle = true
     unpublish(options)
   } else if (options.status === true) {
     print.ok('Loading environments status ...')

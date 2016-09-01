@@ -5,10 +5,7 @@ import build from './build'
 import envs from './environments'
 import Pub from './publisher'
 import login from './login'
-<<<<<<< HEAD
 import inquirer from 'inquirer'
-=======
->>>>>>> 2d2f09b1850f87ce5b0a4ab1bbfd4debc50552b2
 
 /**
  * Publish Module Entry

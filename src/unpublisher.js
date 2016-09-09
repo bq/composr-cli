@@ -6,6 +6,7 @@ import rp from 'request-promise'
 import _ from 'lodash'
 import Table from 'cli-table'
 import co from 'co'
+import inquirer from 'inquirer'
 
 
 function Unpublisher(config, options) {
@@ -17,28 +18,49 @@ function Unpublisher(config, options) {
       if (err) print.error(err)
       process.env.ACCESS_TOKEN = creds.accessToken
       process.env.CP_URL = selectedEnv.composrEndpoint
-        //console.log([null, creds.accessToken, domain])
-      _getEnvironmentPhrases(selectedEnv, options)
+      _getEnvironmentPhrasesSnippets(selectedEnv, options)
+        .then(function(data) {
+          _modelizePhraseResponse(data, options);
+        });
     })
   })
 }
 
 
-const _getEnvironmentPhrases = (selectedEnv, options) => {
-  rp({
-    url: selectedEnv.composrEndpoint + 'phrase',
-    headers: {
-      'Authorization': 'Bearer ' + process.env.ACCESS_TOKEN
-    },
-    method: 'GET',
-    json: true
-  }).then((body) => {
+const _getEnvironmentPhrasesSnippets = (selectedEnv, options) => {
+  var envData = [];
+  return getItemBy(selectedEnv, 'phrase')
+    .then((data) => {
+      envData = envData.concat(data);
+      return getItemBy(selectedEnv, 'snippet');
+    })
+    .then((data) => {
+      envData = envData.concat(data);
+      return envData;
+    }).catch((err) => {
+      print.error(err)
+    })
+}
 
-    (body.length > 0) ? _modelizePhraseResponse(body, options): print.info('no phrases found on this environment')
-
-  }).catch((err) => {
-    print.error(err)
-  })
+const getItemBy = (selectedEnv, type) => {
+  return rp({
+      url: selectedEnv.composrEndpoint + type,
+      headers: {
+        'Authorization': 'Bearer ' + process.env.ACCESS_TOKEN
+      },
+      method: 'GET',
+      json: true
+    })
+    .then((data) => {
+      if (!Array.isArray(data)) {
+        print.warning('No phrases returned')
+        return [];
+      }
+      return data.map(function(e) {
+        e.type = type;
+        return e;
+      });
+    })
 }
 
 const _modelizePhraseResponse = (phrasesList, options) => {
@@ -50,11 +72,12 @@ const _modelizePhraseResponse = (phrasesList, options) => {
     return {
       id: p.id,
       domain: p.domain,
-      version: p.json.version
+      version: p.json.version,
+      type: p.type
     }
   })
   versions = _.uniq(versions)
-    //console.log(phrasesObjects)
+  //console.log(phrasesObjects)
   print.info('Phrase versions availables: ')
 
   let table = new Table({
@@ -62,9 +85,9 @@ const _modelizePhraseResponse = (phrasesList, options) => {
     colWidths: [30]
   })
   versions.map((v) => {
-      table.push([v])
-    })
-    // Show table
+    table.push([v])
+  })
+  // Show table
   console.log(table.toString())
 
   if (options.version && (versions.indexOf(options.version) !== -1)) {
@@ -72,43 +95,82 @@ const _modelizePhraseResponse = (phrasesList, options) => {
       return (p.version === options.version)
     })
 
-    //console.log(phrasesObjects)
+    // console.log(phrasesObjects)
 
     let deleteCalls = []
-    let versionToDelete
+    let versionToDelete = options.version
 
-    phrasesObjects.forEach((p) => {
-      versionToDelete = p.version
-      deleteCalls.push(rp({
-        url: process.env.CP_URL + 'phrase/' + p.id,
-        headers: {
-          'Authorization': 'Bearer ' + process.env.ACCESS_TOKEN
-        },
-        method: 'DELETE',
-        json: true
-      }))
-    })
-
-    // Call to unpublish
-    _unpublish(deleteCalls, versionToDelete)
-
+    if (options.isSingle) {
+      getSingleItem(phrasesObjects, (err, selectedPhrases) => {
+        phrasesObjects = selectedPhrases;
+        deleteCalls = createDeleteRequests(phrasesObjects);
+        _unpublish(deleteCalls, versionToDelete)
+      });
+    } else {
+      deleteCalls = createDeleteRequests(phrasesObjects);
+      // Call to unpublish
+      _unpublish(deleteCalls, versionToDelete)
+    }
   } else {
     print.error('wrong version specified, please use --version=X.X.X')
   }
 }
 
+function createDeleteRequests(phrasesObjects) {
+  var deleteCalls = [];
+
+  phrasesObjects.forEach((p) => {
+    deleteCalls.push(rp({
+      url: process.env.CP_URL + p.type + '/' + p.id,
+      headers: {
+        'Authorization': 'Bearer ' + process.env.ACCESS_TOKEN
+      },
+      method: 'DELETE',
+      json: true
+    }))
+  })
+  return deleteCalls;
+}
+
 /**
  * Unpublish method with co-routines
  */
-function _unpublish(deleteCalls, versionToDelete){
-  co(function*() {
+function _unpublish(deleteCalls, versionToDelete) {
+  co(function * () {
     let res = yield deleteCalls
     print.ok('All ' + versionToDelete + ' phrases and snippets removed')
-  }).catch(onerror)
+  }).catch(onerror);
 }
 
-function onerror(err){
+function onerror(err) {
   print.error(err)
+}
+
+const getSingleItem = (data, cb) => {
+  // Show assistant 
+  // Remove duplicated phrases
+  var selectedPhrases = [];
+  var phrasesChoices = data.map(function(e) {
+    return {
+      name: e.id,
+      value: e.id
+    };
+  });
+
+  inquirer.prompt([{
+    type: 'checkbox',
+    name: 'phrases',
+    message: 'Which phrases do you want to publish?',
+    choices: phrasesChoices
+  }], function(answers) {
+    answers.phrases.forEach(function(t) {
+      var selected = data.filter(function(e) {
+        return e.id === t;
+      });
+      selectedPhrases = selectedPhrases.concat(selected);
+    });
+    cb(null, selectedPhrases);
+  });
 }
 
 module.exports = Unpublisher

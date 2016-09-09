@@ -276,8 +276,16 @@ function startCommandLine() {
     alias: 'p',
     type: Boolean
   }, {
+    name: 'publishSingle',
+    alias: 'o',
+    type: Boolean
+  }, {
     name: 'unpublish',
     alias: 'u',
+    type: Boolean
+  }, {
+    name: 'unpublishSingle',
+    alias: 'r',
     type: Boolean
   }, {
     name: 'init',
@@ -356,8 +364,16 @@ function startCommandLine() {
   } else if (options.publish === true) {
     print.ok('Publish Loading ...')
     publish(options)
+  } else if (options.publishSingle === true) {
+    print.ok('Publish Single Loading ...')
+    options.isSingle = true
+    publish(options)
   } else if (options.unpublish === true) {
     print.ok('Unpublish Loading ...')
+    unpublish(options)
+  } else if (options.unpublishSingle === true) {
+    print.ok('Unpublish Loading ...')
+    options.isSingle = true
     unpublish(options)
   } else if (options.status === true) {
     print.ok('Loading environments status ...')

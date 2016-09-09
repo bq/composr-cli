@@ -45,7 +45,6 @@ const locateModels = (config, next) => {
           phraseURLs.push(result.url)
         })
       }
-      
       return next(err, phrasesCreated)
     })
   })
